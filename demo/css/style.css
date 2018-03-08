@@ -1,0 +1,15 @@
+body {
+    font-size: 1.4em;
+}
+
+.TodoTable button {
+    font-size: 1.1em;
+    padding: 0.4em;
+}
+
+.TodoRow input {
+    border-radius: 0.4em;
+    font-size: 1.4em;
+    line-height: 1.8em;
+    padding-left: 0.4em;
+}

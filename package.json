@@ -1,0 +1,48 @@
+{
+  "name": "skeletron",
+  "version": "0.0.1",
+  "description": "A simple base for client-side application based on React & Rx.JS",
+  "main": "webpack.common.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomachalek/skeletron.git"
+  },
+  "keywords": [
+    "react",
+    "rxjs",
+    "web",
+    "flux"
+  ],
+  "author": "Tomas Machalek",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/tomachalek/skeletron/issues"
+  },
+  "homepage": "https://github.com/tomachalek/skeletron#readme",
+  "dependencies": {
+    "@reactivex/rxjs": "^5.5.6",
+    "@types/react": "^16.0.40",
+    "@types/react-dom": "^16.0.4",
+    "immutable": "^3.8.2",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0"
+  },
+  "devDependencies": {
+    "css-loader": "^0.28.10",
+    "extract-text-webpack-plugin": "4.0.0-beta.0",
+    "file-loader": "^1.1.11",
+    "less": "^3.0.1",
+    "less-loader": "^4.0.6",
+    "style-loader": "^0.20.2",
+    "ts-loader": "^4.0.1",
+    "typescript": "^2.7.2",
+    "uglifyjs-webpack-plugin": "^1.2.2",
+    "webpack": "^4.0.1",
+    "webpack-cli": "^2.0.10",
+    "webpack-dev-server": "^3.1.0",
+    "webpack-merge": "^4.1.2"
+  }
+}
