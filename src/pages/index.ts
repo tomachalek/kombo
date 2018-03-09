@@ -22,6 +22,7 @@ import {Page} from '../core/page';
 import {init as viewInit} from '../views/todomvc';
 import {TodoModel} from '../models/todo';
 import { ServerAPI } from '../models/mockapi';
+import { ViewUtils } from '../core/l10n';
 
 class IndexPage {
 
@@ -29,7 +30,8 @@ class IndexPage {
         const dispatcher = new ActionDispatcher();
         const api = new ServerAPI();
         const model = new TodoModel(dispatcher, api);
-        const component = viewInit(dispatcher, model);
+        const viewUtils = new ViewUtils('en_US');
+        const component = viewInit(dispatcher, viewUtils, model);
         ReactDOM.render(
             React.createElement(component.TodoTable),
             document.getElementById('root-mount')
