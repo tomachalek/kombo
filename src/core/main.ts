@@ -110,7 +110,7 @@ export class ActionDispatcher {
                             newState,
                             action,
                             (seAction:Action) => {
-                                if (seAction.isSideEffect) {
+                                if (action.isSideEffect) {
                                     throw new Error('Nested side-effect not allowed');
                                 }
                                 this.dispatch({
