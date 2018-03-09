@@ -1,5 +1,10 @@
 body {
+    font-family: 'Trebuchet MS', 'Arial', 'sans-serif';
     font-size: 1.4em;
+}
+
+h1 {
+    font-size: 1.7em;
 }
 
 .TodoTable button {
@@ -7,9 +12,45 @@ body {
     padding: 0.4em;
 }
 
-.TodoRow input {
+.TodoTable dt {
+    font-size: 0.9em;
+    color: #777777;
+}
+
+.TodoTable dt:not(:first-child) {
+    margin-top: 0.7em;
+}
+
+.TodoTable dd {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.TodoTable dd input {
     border-radius: 0.4em;
     font-size: 1.4em;
     line-height: 1.8em;
     padding-left: 0.4em;
+    margin-left: 0.4em;
+}
+
+.TodoTable .controls span:not(:first-child) {
+    margin-left: 0.7em;
+}
+
+.TodoTable dd .act-icon {
+    color: red;
+    font-size: 1.5em;
+    width: 1.5em;
+    cursor: pointer;
+    display: inline-block;
+    margin-left: 0.3em;
+}
+
+.TodoTable dd .act-icon.done:hover {
+    color: red;
+}
+
+.TodoTable dd .act-icon.done {
+    color: green;
 }

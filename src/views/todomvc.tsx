@@ -19,9 +19,14 @@ import * as React from 'react';
 import {TodoState, TodoModel} from '../models/todo';
 import {Connected} from '../core/components';
 import { ActionDispatcher } from '../core/main';
+import {ViewUtils} from '../core/l10n';
 import { ActionTypes } from '../models/actions';
 
-export function init(dispatcher:ActionDispatcher, model:TodoModel) {
+
+export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel) {
+
+
+    // ------------------- <TodoText /> --------------------------------
 
     const TodoText:React.SFC<{
         text:string;
@@ -42,7 +47,9 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
 
         return <input type="text" value={props.text} onChange={handleInputChange}
                     placeholder="my new task" disabled={props.complete} />;
-    }
+    };
+
+    // ------------------- <TodoCheckbox /> --------------------------------
 
     const TodoCheckbox:React.SFC<{
         id:number;
@@ -62,6 +69,57 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
         return <input type="checkbox" checked={props.checked} onChange={handleCheckbox} />;
     };
 
+    // ------------------- <ActIcon /> --------------------------------
+
+    class ActIcon extends React.Component<{
+        id:number;
+        complete:boolean;
+    },
+    {
+        isActive:boolean;
+    }> {
+
+        constructor(props) {
+            super(props);
+            this.state = {isActive: false};
+            this.handleMouseover = this.handleMouseover.bind(this);
+            this.handleMouseout = this.handleMouseout.bind(this);
+            this.handleClick = this.handleClick.bind(this);
+        }
+
+        handleClick() {
+            if (this.state.isActive) {
+                dispatcher.dispatch({
+                    type: ActionTypes.DELETE_TODO,
+                    payload: {id: this.props.id}
+                });
+            }
+        }
+
+        handleMouseover() {
+            this.setState({isActive: true});
+        }
+
+        handleMouseout() {
+            this.setState({isActive: false});
+        }
+
+        private getIcon():string {
+            if (this.props.complete) {
+                return '\u263A';
+            }
+            return '\u00a0';
+        }
+
+        render() {
+            return <a className={`act-icon${this.props.complete ? ' done' : ''}`}
+                        onClick={this.handleClick} onMouseOver={this.handleMouseover}
+                        onMouseOut={this.handleMouseout}>{this.state.isActive ? '\u274C' : this.getIcon()}</a>;
+        }
+    };
+
+    // ------------------- <TodoRow /> --------------------------------
+
     const TodoRow:React.SFC<{
         idx:number;
         id:number;
@@ -69,20 +127,19 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
         complete:boolean;
 
     }> = (props) => {
-        return (
-            <tr className="TodoRow">
-                <th>
-                    {props.idx + 1}.
-                </th>
-                <td>
-                    <TodoText {...props} />
-                </td>
-                <td>
-                    <TodoCheckbox id={props.id} checked={props.complete} />
-                </td>
-            </tr>
-        );
+        return <>
+            <dt>
+                <em>{props.idx + 1}. {ut.formatDate(new Date(props.id), 1)}</em>
+            </dt>
+            <dd>
+                <TodoCheckbox id={props.id} checked={props.complete} />
+                <TodoText {...props} />
+                <ActIcon id={props.id} complete={props.complete} />
+            </dd>
+        </>;
     }
+
+    // ------------------- <AddTodoButton /> --------------------------------
 
     const AddTodoButton = (props) => {
 
@@ -95,6 +152,7 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
         return <button type="button" onClick={handleClick}>Add TODO</button>;
     }
 
+    // ------------------- <GenerateTasks /> --------------------------------
 
     const GenerateTasks:React.SFC<{
         isBusy:boolean;
@@ -115,6 +173,7 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
         }
     }
 
+    // ------------------- <TodoTable /> --------------------------------
 
     class TodoTable extends React.PureComponent<TodoState> {
 
@@ -125,16 +184,12 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
         render() {
             return (
                 <div className="TodoTable">
-                    <table>
-                        <tbody>
-                            {this.props.items.map((item, i) => <TodoRow key={`id:${item.id}`} idx={i} {...item} />)}
-                        </tbody>
-                    </table>
-                    <p>
-                        <AddTodoButton />
-                    </p>
-                    <p>
-                        <GenerateTasks isBusy={this.props.isBusy} />
+                    <dl>
+                        {this.props.items.map((item, i) => <TodoRow key={`id:${item.id}`} idx={i} {...item} />)}
+                    </dl>
+                    <p className="controls">
+                        <span><AddTodoButton /></span>
+                        <span><GenerateTasks isBusy={this.props.isBusy} /></span>
                     </p>
                 </div>
             );
