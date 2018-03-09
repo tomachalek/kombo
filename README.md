@@ -1,7 +1,18 @@
-# skeletron
+# Skeletron
+
+(a work in progress project)
 
 Skeletron is a simple base for client-side application based on React &amp; Rx.JS. It takes some inspiration from Flux architecture and Redux library.
 
+## Contents
+
+* [Key principles](#key_principles)
+* [Structure](#structure)
+  * [Stateless models](#stateless_models)
+  * [Stateful models](#stateful_models)
+  * [Views](#view_module)
+
+<a name="key_principles"></a>
 ## Key principles
 
 * no boilerplate code (or as few as possible)
@@ -16,6 +27,10 @@ Skeletron is a simple base for client-side application based on React &amp; Rx.J
    * many models -- many states
 * view components are always wrapped inside a function allowing runtime dependency injection
 
+<a name="structure"></a>
+## Structure
+
+<a name="stateless_models"></a>
 ### Stateless models
 
 Stateless model does not control when its related state is changed. It only specifies how the state is changed 
@@ -78,13 +93,13 @@ export class MyModel extends StatelessModel<MyState> {
 
 }
 ```
-
+<a name="stateful_models"></a>
 ### Stateful models
 
 Stateful models are intended mainly for legacy code integration. They control how and when their internal state is changed in response to an action (they must explicitly call *emitChange* to notify their listeners - typically React components - that they should update their state).
 
 ```ts
-export class MyStatefulModel extends StateFullModel {
+export class MyStatefulModel extends StateFulModel {
 
     constructor(dispatcher:ActionDispatcher) {
         dispatcher.register(action => {
@@ -108,7 +123,9 @@ export class MyStatefulModel extends StateFullModel {
         });
     }
 }
+```
 
+<a name="view_module"></a>
 ### View module
 
 ```tsx
