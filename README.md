@@ -1,8 +1,10 @@
 # skeletron
-A simple base for client-side application based on React &amp; Rx.JS
+
+Skeletron is a simple base for client-side application based on React &amp; Rx.JS. It takes some inspiration from Flux architecture and Redux library.
 
 ## Key principles
 
+* no boilerplate code (or as few as possible)
 * expects model to encapsulate whole business logic (including API calls etc.)
   * model should know what to do with its related state (no actionCreator/store dilemma)
   * stateless model transforms state with possible explicitly defined side effects
@@ -15,6 +17,14 @@ A simple base for client-side application based on React &amp; Rx.JS
 * view components are always wrapped inside a function allowing runtime dependency injection
 
 ### Stateless models
+
+Stateless model does not control when its related state is changed. It only specifies how the state is changed 
+in response to different actions (note: do not forget to pass through an original state in case the model does
+not respond to an action).
+
+To be able to perform asynchornous API calls, synchronize/notify other possible stores etc., stateless model 
+can specify its side effects bound to different actions. These effects are invoked once their respective actions 
+reduce the current state.
 
 ```ts
 
@@ -71,6 +81,33 @@ export class MyModel extends StatelessModel<MyState> {
 
 ### Stateful models
 
+Stateful models are intended mainly for legacy code integration. They control how and when their internal state is changed in response to an action (they must explicitly call *emitChange* to notify their listeners - typically React components - that they should update their state).
+
+```ts
+export class MyStatefulModel extends StateFullModel {
+
+    constructor(dispatcher:ActionDispatcher) {
+        dispatcher.register(action => {
+            switch (action.type) {
+                case 'GET_DATA':
+                    this.isBusy = true;
+                    this.emitChange();
+                    this.ajax(...).then(
+                        (data) => {
+                            this.data = data;
+                            this.emitChange();
+                        },
+                        (err) => {
+                            this.data = null;
+                            this.error = err;
+                            this.emitChange();
+                        }
+                    )
+                break;
+            }
+        });
+    }
+}
 
 ### View module
 
