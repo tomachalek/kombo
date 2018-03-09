@@ -110,11 +110,13 @@ export class MyStatefulModel extends StateFulModel {
                     this.ajax(...).then(
                         (data) => {
                             this.data = data;
+                            this.isBusy = false;
                             this.emitChange();
                         },
                         (err) => {
                             this.data = null;
                             this.error = err;
+                            this.isBusy = false;
                             this.emitChange();
                         }
                     )
