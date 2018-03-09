@@ -75,8 +75,12 @@ export class MyModel extends StatelessModel<MyState> {
 ### View module
 
 ```tsx
+import * as React from 'react';
+import {Connected} from '../core/components';
+import { ActionDispatcher } from '../core/main';
+import {ViewUtils} from '../core/l10n';
 
-export function init(dispatcher:ActionDispatcher, model:TodoModel) {
+export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel) {
 
     const TodoText:React.SFC<{
         text:string;
@@ -95,8 +99,10 @@ export function init(dispatcher:ActionDispatcher, model:TodoModel) {
             });
         }
 
-        return <input type="text" value={props.text} onChange={handleInputChange}
-                    placeholder="my new task" disabled={props.complete} />;
+        return <label>{ut.translate('msg_key1')}
+                 <input type="text" value={props.text} onChange={handleInputChange}
+                    placeholder="my new task" disabled={props.complete} />
+        </label>;
     };
     
     class TodoTable:React.SFC<TodoTableProps> {
