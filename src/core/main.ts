@@ -55,6 +55,7 @@ export interface IEventListener<T> {
 
 export interface IEventEmitter<T={}> {
     addListener(callback:(state?:T)=>void):Rx.Subscription;
+    emitChange():void;
 }
 
 
