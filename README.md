@@ -2,7 +2,10 @@
 
 (a work in progress project)
 
-Skeletron is a simple base for client-side application based on React &amp; Rx.JS. It takes some inspiration from Flux architecture and Redux library.
+Skeletron is a simple base for client-side application based on [React](https://reactjs.org/) &amp;
+[RxJS](http://reactivex.io/). It takes some loose inspiration from Flux architecture and Redux library.
+It is used in production in an application containing ~60k lines of TypeScript code and with
+thousands of users.
 
 ## Contents
 
@@ -11,21 +14,30 @@ Skeletron is a simple base for client-side application based on React &amp; Rx.J
   * [Stateless models](#stateless_models)
   * [Stateful models](#stateful_models)
   * [Views](#view_module)
+  * [Page initialization](#page_initialization)
 
 <a name="key_principles"></a>
 ## Key principles
 
 * no boilerplate code (or as few as possible)
-* expects model to encapsulate whole business logic (including API calls etc.)
+* no global singleton models (like e.g. stores in many Flux apps)
+  * this breaks any awareness of components' dependencies
+* no pure FP/OOP/... ideology - just use what's good for the job
+* embrace more traditional "model" as an object which encapsulates a specified subdomain of business logic
+  (including API calls etc.)
   * model should know what to do with its related state (no actionCreator/store dilemma)
   * stateless model transforms state with possible explicitly defined side effects
+    * side effects may produce actions (i.e. model does this) but that's where the chain ends
+      (i.e. no action loops)
   * stateful model is inherently impure and can change itself in any way and decide on its own when to notify change listeners
     (similar to classic event emitter from Flux)
 * no action creators (dispatching directly from React components)
 * flexible model/state configuration
-   * one model -- one state
-   * many models -- many states
+  * one model -- one state
+  * many models -- one state
+  * many models -- many states (typically each model handles its state here)
 * view components are always wrapped inside a function allowing runtime dependency injection
+  (e.g. translation of messages is based on runtime user language settings)
 
 <a name="structure"></a>
 ## Structure
@@ -33,13 +45,21 @@ Skeletron is a simple base for client-side application based on React &amp; Rx.J
 <a name="stateless_models"></a>
 ### Stateless models
 
-Stateless model does not control when its related state is changed. It only specifies how the state is changed 
+Stateless model does not control when its related state is changed. It only specifies how the state is changed
 in response to different actions (note: do not forget to pass through an original state in case the model does
 not respond to an action).
 
-To be able to perform asynchornous API calls, synchronize/notify other possible stores etc., stateless model 
-can specify its side effects bound to different actions. These effects are invoked once their respective actions 
-reduce the current state.
+It is expected that the state is a traditional JS object with (ideally) immutable values. This allows simple
+(shallow) state copying when reducing without fear of strange app behavior. The best way to achieve this is
+to use either primitive values (string, number, boolean) combined with more complex immutable data types.
+(Skeletron uses Immutable.js).
+
+
+To be able to perform asynchornous API calls, synchronize/notify other possible stores etc., stateless model
+can specify its side effects bound to different actions. These effects are invoked once their respective actions
+reduce the current state. Side-effect actions should be dispatched via provided *dispatch* function (i.e. not
+via global dispatcher) because it is handled in a special way to prevent infinite long action chains or even
+action loops.
 
 ```ts
 
@@ -47,6 +67,7 @@ export interface MyState {
     userId:number;
     firstname:string;
     lastname:string;
+    memberships:Immutable.List<{id:string; type:string}>;
     isBusy:boolean;
 }
 
@@ -59,18 +80,22 @@ export class MyModel extends StatelessModel<MyState> {
                 userId: -1,
                 firstname: '',
                 lastname: '',
+                memberships:Immutable.List<{id:string; type:string}>(),
                 isBusy: false
             },
             (state, action, dispatch) => { // SIDE EFFECTS (run by skeletron after reduce())
                 switch (action.type) {
                     case 'REGISTER_USER':
                         // do some (async) stuff
-                        // or trigger some other store
+                        // or trigger some other store.
+                        // dispatching of a side-effect is
+                        // done via a provided function (and
+                        // not the dispatcher in costructor)
                         dispatch({
                             type: 'REGISTER_USER_DONE',
                             payload: {userId: someFetchedInfo['userId']};
                         })
-                        
+
                     break;
                 }
             }
@@ -96,7 +121,16 @@ export class MyModel extends StatelessModel<MyState> {
 <a name="stateful_models"></a>
 ### Stateful models
 
-Stateful models are intended mainly for legacy code integration. They control how and when their internal state is changed in response to an action (they must explicitly call *emitChange* to notify their listeners - typically React components - that they should update their state).
+Stateful models are intended mainly for legacy code integration. They control how and when their internal
+state is changed in response to an action (they must explicitly call *emitChange* to notify their listeners -
+typically React components - that they should update their state). Stateful models pass themselves
+to the state change handling function used by React components. I.e. it is up to the React component to
+fetch required data using Stateful component's getters. The nature of stateful model cannot guarantee any
+"pure functional" relation between action and model state in time when the component starts attach the data.
+E.g. you can set some values from a form triggering a respective action but the component may internally
+asynchronously do some magic and you end up with different data visible. Properly designed and written
+applications probably avoid this but it is important to understand this important difference between stateless
+and stateful models.
 
 ```ts
 export class MyStatefulModel extends StateFulModel {
@@ -106,6 +140,9 @@ export class MyStatefulModel extends StateFulModel {
             switch (action.type) {
                 case 'GET_DATA':
                     this.isBusy = true;
+                    // We don't have to define two actions (GET_DATA, GET_DATA_DONE).
+                    // just notify React components before and after we start to
+                    // process the data reading.
                     this.emitChange();
                     this.ajax(...).then(
                         (data) => {
@@ -160,14 +197,40 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
                     placeholder="my new task" disabled={props.complete} />
         </label>;
     };
-    
+
     class TodoTable:React.SFC<TodoTableProps> {
      // ....
     };
 
     return {
       TodoText: TodoText,
-      TodoTable: Connected<TodoState>(TodoTable, model)
+      TodoTable: Connected<TodoState>(TodoTable, model) // Connected wrapper passes state to props
     }
+}
+```
+
+<a name="page_initialization"></a>
+### Page initialization
+
+```ts
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+import {ActionDispatcher} from '../core/main';
+import {init as viewInit} from '../views/todomvc';
+import {TodoModel} from '../models/todo';
+import { ServerAPI } from '../models/mockapi';
+import { ViewUtils } from '../core/l10n';
+
+
+export function init() {
+    const dispatcher = new ActionDispatcher();
+    const model = new MyModel(dispatcher);
+    const viewUtils = new ViewUtils('en_US');
+    const component = viewInit(dispatcher, viewUtils, model);
+    ReactDOM.render(
+        React.createElement(component.TodoTable),
+        document.getElementById('root-mount')
+    );
 }
 ```
