@@ -20,16 +20,20 @@ import {IEventEmitter, IReducer, Action, ActionDispatcher, SideEffectHandler, IE
 
 export class StatefulModel implements IEventEmitter {
 
-    private change$:Rx.Observable<{}>;
+    private change$:Rx.Subject<StatefulModel>;
 
 
     addListener(fn:IEventListener<{}>):Rx.Subscription {
         return this.change$.subscribe(fn);
     }
+
+    emitChange():void {
+        this.change$.next(this);
+    }
 }
 
 
-export abstract class StatelessModel<T> implements IReducer<T>, IEventEmitter {
+export abstract class StatelessModel<T> implements IReducer<T> {
 
     private state$:Rx.BehaviorSubject<T>;
 
