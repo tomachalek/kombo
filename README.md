@@ -51,8 +51,7 @@ not respond to an action).
 
 It is expected that the state is a traditional JS object with (ideally) immutable values. This allows simple
 (shallow) state copying when reducing without fear of strange app behavior. The best way to achieve this is
-to use either primitive values (string, number, boolean) combined with more complex immutable data types.
-(Skeletron uses Immutable.js).
+to use primitive values (string, number, boolean) combined with immutable structured data types (e.g. Immutable.js).
 
 
 To be able to perform asynchornous API calls, synchronize/notify other possible stores etc., stateless model
