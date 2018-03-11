@@ -1,8 +1,8 @@
-# Skeletron
+# Kombo
 
 (a work in progress project)
 
-Skeletron is a simple base for client-side application based on [React](https://reactjs.org/) &amp;
+Kombo is a simple base for client-side application based on [React](https://reactjs.org/) &amp;
 [RxJS](http://reactivex.io/). It takes some loose inspiration from Flux architecture and Redux library.
 It is used in production in an application containing ~60k lines of TypeScript code and with
 thousands of users.
@@ -82,7 +82,7 @@ export class MyModel extends StatelessModel<MyState> {
                 memberships:Immutable.List<{id:string; type:string}>(),
                 isBusy: false
             },
-            (state, action, dispatch) => { // SIDE EFFECTS (run by skeletron after reduce())
+            (state, action, dispatch) => { // SIDE EFFECTS (run by Kombo after reduce())
                 switch (action.type) {
                     case 'REGISTER_USER':
                         // do some (async) stuff
