@@ -168,9 +168,7 @@ export class MyStatefulModel extends StateFulModel {
 
 ```tsx
 import * as React from 'react';
-import {Connected} from '../core/components';
-import { ActionDispatcher } from '../core/main';
-import {ViewUtils} from '../core/l10n';
+import {Connected, ActionDispatcher, ViewUtils} from 'kombo';
 
 export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel) {
 
@@ -215,11 +213,10 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import {ActionDispatcher} from '../core/main';
+import {ActionDispatcher, ViewUtils} from 'kombo';
 import {init as viewInit} from '../views/todomvc';
 import {TodoModel} from '../models/todo';
 import { ServerAPI } from '../models/mockapi';
-import { ViewUtils } from '../core/l10n';
 
 
 export function init() {

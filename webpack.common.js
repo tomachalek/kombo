@@ -6,8 +6,8 @@ const extractLess = new ExtractTextPlugin({
     filename: '[name].css'
 });
 
-const mkpath = (p) => path.resolve(__dirname, 'src', p);
-const mkDistpath = (p) => path.resolve(__dirname, 'dist', p);
+const mkpath = (p) => path.resolve(__dirname, 'demo/src/js', p);
+const mkDistpath = (p) => path.resolve(__dirname, 'demo/dist', p);
 
 module.exports = {
     entry: {
@@ -20,7 +20,9 @@ module.exports = {
         library: '[name]Page'
     },
     resolve: {
-        alias: {},
+        alias: {
+            'kombo': path.resolve(__dirname, 'src/kombo')
+        },
         modules: [
             'node_modules'
         ],

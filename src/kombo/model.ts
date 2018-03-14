@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+/// <reference path="../compat.d.ts" />
+
 import * as Rx from '@reactivex/rxjs';
 import {IEventEmitter, IReducer, Action, ActionDispatcher, SideEffectHandler, IEventListener} from './main';
 
