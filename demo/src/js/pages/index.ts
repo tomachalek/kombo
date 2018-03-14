@@ -17,12 +17,13 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import {ActionDispatcher} from '../core/main';
-import {Page} from '../core/page';
+import {ActionDispatcher, ViewUtils} from 'kombo';
 import {init as viewInit} from '../views/todomvc';
 import {TodoModel} from '../models/todo';
 import { ServerAPI } from '../models/mockapi';
-import { ViewUtils } from '../core/l10n';
+
+declare var require:any;
+require('../../css/style.css');
 
 class IndexPage {
 

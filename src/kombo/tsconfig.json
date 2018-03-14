@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "module": "commonjs",
+    "target": "es5",
+    "outDir": "../../dist",
+    "declaration": true,
+    "declarationDir": "../..",
+    "inlineSourceMap": true
+  },
+  "files": [
+    "components.ts",
+    "l10n.ts",
+    "main.ts",
+    "model.ts",
+    "page.ts"
+   ]
+}

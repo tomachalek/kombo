@@ -1,14 +1,15 @@
 {
-  "name": "skeletron",
+  "name": "kombo",
   "version": "0.0.1",
   "description": "A simple base for client-side application based on React & Rx.JS",
-  "main": "webpack.common.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tomachalek/skeletron.git"
+    "url": "git+https://github.com/tomachalek/kombo.git"
   },
   "keywords": [
     "react",
@@ -19,9 +20,9 @@
   "author": "Tomas Machalek",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/tomachalek/skeletron/issues"
+    "url": "https://github.com/tomachalek/kombo/issues"
   },
-  "homepage": "https://github.com/tomachalek/skeletron#readme",
+  "homepage": "https://github.com/tomachalek/kombo#readme",
   "dependencies": {
     "@reactivex/rxjs": "^5.5.6",
     "@types/react": "^16.0.40",

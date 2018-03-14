@@ -16,8 +16,7 @@
 
 import * as Immutable from 'immutable';
 
-import {StatelessModel} from '../core/model';
-import {Action, ActionDispatcher} from '../core/main';
+import {StatelessModel, Action, ActionDispatcher} from 'kombo';
 import {ActionTypes} from './actions';
 import { ServerAPI } from './mockapi';
 

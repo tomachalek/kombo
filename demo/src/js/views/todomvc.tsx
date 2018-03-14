@@ -17,9 +17,7 @@
 import * as React from 'react';
 
 import {TodoState, TodoModel} from '../models/todo';
-import {Connected} from '../core/components';
-import { ActionDispatcher } from '../core/main';
-import {ViewUtils} from '../core/l10n';
+import {Connected, ViewUtils, ActionDispatcher} from 'kombo';
 import { ActionTypes } from '../models/actions';
 
 
