@@ -19,23 +19,33 @@
 import * as Rx from '@reactivex/rxjs';
 import {IEventEmitter, IReducer, Action, ActionDispatcher, SideEffectHandler, IEventListener} from './main';
 
+/**
+ * A general model implementation as viewed from
+ * the perspective of a React component.
+ */
+export interface IModel<T> {
 
-export class StatefulModel implements IEventEmitter {
+    addListener(fn:IEventListener<T>):Rx.Subscription;
 
-    private change$:Rx.Subject<StatefulModel>;
-
-
-    addListener(fn:IEventListener<{}>):Rx.Subscription {
-        return this.change$.subscribe(fn);
-    }
-
-    emitChange():void {
-        this.change$.next(this);
-    }
+    /**
+     * For initial state fetching.
+     */
+    getState():T;
 }
 
-
-export abstract class StatelessModel<T> implements IReducer<T> {
+/**
+ * Stateless model provides a recommended way how to implement
+ * application's logic. There is no hardcoded limit how many models
+ * and states should be there but some configurations are more
+ * suitable for some use-cases then others. Simple applications
+ * may prefer single state object while complex ones can be
+ * designed in a more decentralized way with several state objects
+ * (matching some specific domains) with possible model communication
+ * via side-effects handler (.e.g. a model for a "messaging" subsystem
+ * may trigger app's "file manager" model to store a message attachment as
+ * a side effect).
+ */
+export abstract class StatelessModel<T extends object> implements IReducer<T>, IModel<T> {
 
     private state$:Rx.BehaviorSubject<T>;
 
@@ -63,17 +73,50 @@ export abstract class StatelessModel<T> implements IReducer<T> {
     }
 
     copyState(state:T):T {
-        if (Object.assign) {
-            return <T>Object.assign({}, state);
-
-        } else {
-            const ans:{[key:string]:any} = {};
-            for (let p in state) {
-                if (state.hasOwnProperty(p)) {
-                    ans[p] = state[p];
-                }
-            }
-            return <T>ans;
-        }
+        return cloneState(this.getState());
     }
+}
+
+
+/**
+ *
+ * @param state
+ */
+export const cloneState = <T extends object>(state:Readonly<T>|T):T => {
+    if (Object.assign) {
+        return <T>Object.assign({}, state);
+
+    } else {
+        const ans:{[key:string]:any} = {};
+        for (let p in state) {
+            if (state.hasOwnProperty(p)) {
+                ans[p] = state[p];
+            }
+        }
+        return <T>ans;
+    }
+};
+
+
+/**
+ * Stateful model allows impure model implementation where
+ * 'state' is represented by whole model object. But Kombo still requires
+ * the model to be able to export its state as an object
+ * (we try to avoid React component fetching individual state items
+ * via model's getters and prefer using 'Bound' wrapper component with
+ * automatic mapping of state to properties.
+ */
+export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
+
+    private change$:Rx.Subject<T>;
+
+    addListener(fn:IEventListener<T>):Rx.Subscription {
+        return this.change$.subscribe(fn);
+    }
+
+    emitChange():void {
+        this.change$.next(this.getState());
+    }
+
+    abstract getState():T;
 }

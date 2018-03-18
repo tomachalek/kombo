@@ -168,7 +168,7 @@ export class MyStatefulModel extends StateFulModel {
 
 ```tsx
 import * as React from 'react';
-import {Connected, ActionDispatcher, ViewUtils} from 'kombo';
+import {Bound, ActionDispatcher, ViewUtils} from 'kombo';
 
 export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel) {
 
@@ -201,7 +201,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
 
     return {
       TodoText: TodoText,
-      TodoTable: Connected<TodoState>(TodoTable, model) // Connected wrapper passes state to props
+      TodoTable: Bound<TodoState>(TodoTable, model) // Bound wrapper passes state to props
     }
 }
 ```

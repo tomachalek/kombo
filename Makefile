@@ -1,6 +1,8 @@
-all : client-dev
+all : client-dev library
 production :  client-prod
-.PHONY: all client-dev client-prod devel-server
+.PHONY: all library client-dev client-prod devel-server
+library :
+	nodejs node_modules/webpack/bin/webpack.js --mode production --config webpack.lib.js
 client-prod :
 	nodejs node_modules/webpack/bin/webpack.js --mode production --config webpack.prod.js
 client-dev :
