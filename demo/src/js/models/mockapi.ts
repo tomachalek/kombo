@@ -23,9 +23,9 @@ export interface ServerTask {
 
 export class ServerAPI {
 
-    private verbs = ['wash', 'sell', 'buy', 'fix'];
+    private verbs = ['wash', 'sell', 'buy', 'fix', 'upgrade'];
 
-    private objects = ['dishes', 'TV', 'windows', 'stereo', 'books']
+    private objects = ['dishes', 'TV', 'windows', 'stereo', 'books', 'records'];
 
     private randomVerb():string {
         return this.verbs[Math.round(Math.random() * (this.verbs.length - 1))];

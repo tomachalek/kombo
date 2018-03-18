@@ -17,7 +17,7 @@
 import * as React from 'react';
 
 import {TodoState, TodoModel} from '../models/todo';
-import {Connected, ViewUtils, ActionDispatcher} from 'kombo';
+import {Bound, ViewUtils, ActionDispatcher} from 'kombo';
 import { ActionTypes } from '../models/actions';
 
 
@@ -195,7 +195,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
     }
 
     return {
-        TodoTable: Connected<TodoState>(TodoTable, model)
+        TodoTable: Bound<TodoState>(TodoTable, model)
     };
 
 }
