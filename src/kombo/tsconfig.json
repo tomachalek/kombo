@@ -6,7 +6,8 @@
     "outDir": "../../dist",
     "declaration": true,
     "declarationDir": "../..",
-    "inlineSourceMap": true
+    "inlineSourceMap": true,
+    "strictNullChecks": true
   },
   "files": [
     "components.ts",

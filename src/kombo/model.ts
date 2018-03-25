@@ -51,7 +51,7 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
 
     private dispatcher:ActionDispatcher;
 
-    private sideEffects:SideEffectHandler<T>;
+    private sideEffects:SideEffectHandler<T>|undefined;
 
     constructor(dispatcher:ActionDispatcher, initialState:T, sideEffects?:SideEffectHandler<T>) {
         this.dispatcher = dispatcher;

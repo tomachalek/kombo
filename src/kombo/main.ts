@@ -30,22 +30,7 @@ export interface SideEffectAction extends Action {
 }
 
 
-export const isUIAction = (action:AnyAction):action is Action => {
-    return !action.isSideEffect;
-};
-
-
-export const isSideEffectAction = (action:AnyAction):action is SideEffectAction => {
-    return action.isSideEffect;
-};
-
-
 export type AnyAction = Action | SideEffectAction;
-
-
-export interface EventEmitterSubscription {
-
-}
 
 
 export interface IEventListener<T> {
@@ -69,9 +54,26 @@ export interface SideEffectHandler<T> {
 }
 
 
+export namespace ActionHelper {
+
+    export const getPayloadItem = <T>(action:AnyAction, item:string) => {
+        return action.payload ? <T>action.payload[item] : undefined;
+    };
+
+    export const isSideEffect = (action:AnyAction) => {
+        return !!action.isSideEffect;
+    };
+}
+
+
+/**
+ *
+ */
 export type IActionHandler = Rx.Observer<Action>;
 
-
+/**
+ *
+ */
 export class ActionDispatcher {
 
     private inAction$:Rx.Subject<AnyAction>;
@@ -100,7 +102,7 @@ export class ActionDispatcher {
     }
 
     registerReducer<T>(model:IReducer<T>, initialState:T, sideEffects?:SideEffectHandler<T>):Rx.BehaviorSubject<T> {
-        const state$ = new Rx.BehaviorSubject(null);
+        const state$ = new Rx.BehaviorSubject(initialState);
         this.action$
             .startWith(null)
             .scan(
