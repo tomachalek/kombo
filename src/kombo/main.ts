@@ -115,13 +115,15 @@ export class ActionDispatcher {
                             (seAction:Action) => {
                                 if (action.isSideEffect) {
                                     throw new Error('Nested side-effect not allowed');
-                                }
-                                this.dispatch({
-                                    isSideEffect:true,
-                                    type: seAction.type,
-                                    payload: seAction.payload,
-                                    error: seAction.error
-                                });
+				                }
+                                window.setTimeout(() => {
+                                    this.dispatch({
+                                        isSideEffect:true,
+                                        type: seAction.type,
+                                        payload: seAction.payload,
+                                        error: seAction.error
+                                    });
+                                }, 0);
                             }
                         ) :
                         null;
