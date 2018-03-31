@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-export class ViewUtils {
+export type TranslationTable = {[key:string]:string};
+
+export class ViewUtils<T> {
 
     private uiLang:string;
 
-    constructor(uiLang='en-US') {
+    private translations:{[lang:string]:TranslationTable};
+
+    private components?:T;
+
+    constructor(uiLang='en-US', translations?:{[lang:string]:TranslationTable}, components?:T) {
         this.uiLang = uiLang.replace('_', '-');
+        this.translations = translations || {'en-US': {}};
+        this.components = components;
+    }
+
+    changeUILang(lang:string):void {
+        this.uiLang = lang;
     }
 
     /**
@@ -38,6 +50,14 @@ export class ViewUtils {
             opts['second'] = '2-digit';
         }
         return new Intl.DateTimeFormat(this.uiLang, opts).format(d);
+    }
+
+    translate(key:string, args?:{[key:string]:string}):string {
+        return this.translations[this.uiLang][key] || key;
+    }
+
+    getComponents():T|undefined {
+        return this.components;
     }
 
 }

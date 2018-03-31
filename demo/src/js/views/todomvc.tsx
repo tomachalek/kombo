@@ -21,7 +21,7 @@ import {Bound, ViewUtils, ActionDispatcher} from 'kombo';
 import { ActionTypes } from '../models/actions';
 
 
-export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel) {
+export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoModel) {
 
 
     // ------------------- <TodoText /> --------------------------------
@@ -44,7 +44,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
         }
 
         return <input type="text" value={props.text} onChange={handleInputChange}
-                    placeholder="my new task" disabled={props.complete} />;
+                    placeholder={ut.translate('input_add_task_placeholder')} disabled={props.complete} />;
     };
 
     // ------------------- <TodoCheckbox /> --------------------------------
@@ -147,7 +147,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
             });
         }
 
-        return <button type="button" onClick={handleClick}>Add TODO</button>;
+        return <button type="button" onClick={handleClick}>{ut.translate('btn_add_todo')}</button>;
     }
 
     // ------------------- <GenerateTasks /> --------------------------------
@@ -167,7 +167,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
             return <img src="./img/ajax-loader.gif" />;
 
         } else {
-            return <button type="button" onClick={handleClick}>Generate</button>;
+            return <button type="button" onClick={handleClick}>{ut.translate('btn_generate')}</button>;
         }
     }
 

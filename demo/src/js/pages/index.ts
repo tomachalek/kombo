@@ -27,11 +27,24 @@ require('../../css/style.css');
 
 class IndexPage {
 
+    private translations = {
+        'en-US': {
+            'btn_generate': 'Generate',
+            'btn_add_todo': 'Add TODO',
+            'input_add_task_placeholder': 'my new task'
+        },
+        'eo-EO': {
+            'btn_generate': 'Generi',
+            'btn_add_todo': 'Aldoni tasko',
+            'input_add_task_placeholder': 'mia nova tasko'
+        }
+    };
+
     init():void {
         const dispatcher = new ActionDispatcher();
         const api = new ServerAPI();
         const model = new TodoModel(dispatcher, api);
-        const viewUtils = new ViewUtils('en_US');
+        const viewUtils = new ViewUtils<{}>('en_US', this.translations);
         const component = viewInit(dispatcher, viewUtils, model);
         ReactDOM.render(
             React.createElement(component.TodoTable),
