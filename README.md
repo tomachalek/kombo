@@ -81,22 +81,6 @@ export class MyModel extends StatelessModel<MyState> {
                 lastname: '',
                 memberships:Immutable.List<{id:string; type:string}>(),
                 isBusy: false
-            },
-            (state, action, dispatch) => { // SIDE EFFECTS (run by Kombo after reduce())
-                switch (action.type) {
-                    case 'REGISTER_USER':
-                        // do some (async) stuff
-                        // or trigger some other store.
-                        // dispatching of a side-effect is
-                        // done via a provided function (and
-                        // not the dispatcher in costructor)
-                        dispatch({
-                            type: 'REGISTER_USER_DONE',
-                            payload: {userId: someFetchedInfo['userId']};
-                        })
-
-                    break;
-                }
             }
         );
     }
@@ -111,28 +95,48 @@ export class MyModel extends StatelessModel<MyState> {
                 newState.isBusy = false;
                 newState.userId = action.payload['userId'];
             break;
+            default:
+                return state;
         }
         return newState;
     }
 
+    sideEffects(state:MyState, action:Action, dispatch:SEDispatcher) => {
+        switch (action.type) {
+            case 'REGISTER_USER':
+                // do some (async) stuff
+                // or trigger some other store.
+                // dispatching of a side-effect is
+                // done via a provided function (and
+                // not the dispatcher in costructor)
+                dispatch({
+                    type: 'REGISTER_USER_DONE',
+                    payload: {userId: someFetchedInfo['userId']};
+                })
+
+            break;
+        }
+    }
+
 }
 ```
+
 <a name="stateful_models"></a>
 ### Stateful models
 
 Stateful models are intended mainly for legacy code integration. They control how and when their internal
 state is changed in response to an action (they must explicitly call *emitChange* to notify their listeners -
-typically React components - that they should update their state). Stateful models pass themselves
-to the state change handling function used by React components. I.e. it is up to the React component to
-fetch required data using Stateful component's getters. The nature of stateful model cannot guarantee any
-"pure functional" relation between action and model state in time when the component starts attach the data.
-E.g. you can set some values from a form triggering a respective action but the component may internally
-asynchronously do some magic and you end up with different data visible. Properly designed and written
-applications probably avoid this but it is important to understand this important difference between stateless
-and stateful models.
+typically React components - that they should update their state).
+
+I.e. it is up to the React component to fetch required data using Stateful component's getters. The nature of
+stateful model cannot guarantee any "pure functional" relation between action and model state in time when the
+component starts attach the data. E.g. you can set some values from a form triggering a respective action but
+the component may internally asynchronously do some magic and you end up with different data visible. Properly
+designed and written applications probably avoid this but it is important to understand this important
+difference between stateless and stateful models.
 
 ```ts
-export class MyStatefulModel extends StateFulModel {
+export class MyStatefulModel extends StatefulModel {
 
     constructor(dispatcher:ActionDispatcher) {
         dispatcher.register(action => {

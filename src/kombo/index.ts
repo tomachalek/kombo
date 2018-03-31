@@ -15,8 +15,7 @@
  */
 
 export {Action, SideEffectAction, IEventListener, IReducer,
-    SideEffectHandler, IActionHandler,
-    ActionDispatcher, ActionHelper} from './main';
+    IActionHandler, ActionDispatcher, ActionHelper, SEDispatcher} from './main';
 export {Bound, BoundAux} from './components';
 export {ViewUtils} from './l10n';
 export {StatefulModel, StatelessModel, IModel, cloneState} from './model';
