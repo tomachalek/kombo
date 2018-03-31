@@ -16,7 +16,7 @@
 
 import * as Immutable from 'immutable';
 
-import {StatelessModel, Action, ActionDispatcher} from 'kombo';
+import {StatelessModel, Action, ActionDispatcher, SEDispatcher} from 'kombo';
 import {ActionTypes} from './actions';
 import { ServerAPI } from './mockapi';
 
@@ -44,19 +44,6 @@ export class TodoModel extends StatelessModel<TodoState> {
             {
                 items: Immutable.List<TodoItem>(),
                 isBusy: false
-            },
-            (state, action, dispatch) => { // SIDE EFFECTS
-                switch (action.type) {
-                    case ActionTypes.FETCH_TODOS:
-                        const resp = this.serverApi.fetchData();
-                        resp.subscribe(v => {
-                            dispatch({
-                                type: ActionTypes.FETCH_TODOS_DONE,
-                                payload: {data: v}
-                            });
-                        });
-                    break;
-                }
             }
         );
         this.serverApi = serverApi;
@@ -119,6 +106,20 @@ export class TodoModel extends StatelessModel<TodoState> {
             break;
         }
         return newState;
+    }
+
+    sideEffects(state:TodoState, action:Action, dispatch:SEDispatcher):void {
+        switch (action.type) {
+            case ActionTypes.FETCH_TODOS:
+                const resp = this.serverApi.fetchData();
+                resp.subscribe(v => {
+                    dispatch({
+                        type: ActionTypes.FETCH_TODOS_DONE,
+                        payload: {data: v}
+                    });
+                });
+            break;
+        }
     }
 
 }

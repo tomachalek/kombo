@@ -17,7 +17,7 @@
 /// <reference path="../compat.d.ts" />
 
 import * as Rx from '@reactivex/rxjs';
-import {IEventEmitter, IReducer, Action, ActionDispatcher, SideEffectHandler, IEventListener} from './main';
+import {IEventEmitter, IReducer, Action, ActionDispatcher, IEventListener, SEDispatcher} from './main';
 
 /**
  * A general model implementation as viewed from
@@ -49,17 +49,13 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
 
     private state$:Rx.BehaviorSubject<T>;
 
-    private dispatcher:ActionDispatcher;
-
-    private sideEffects:SideEffectHandler<T>|undefined;
-
-    constructor(dispatcher:ActionDispatcher, initialState:T, sideEffects?:SideEffectHandler<T>) {
-        this.dispatcher = dispatcher;
-        this.sideEffects = sideEffects;
-        this.state$ = dispatcher.registerReducer(this, initialState, sideEffects);
+    constructor(dispatcher:ActionDispatcher, initialState:T) {
+        this.state$ = dispatcher.registerReducer(this, initialState);
     }
 
     abstract reduce(state:T, action:Action):T;
+
+    sideEffects(state:T, action:Action, dispatch:SEDispatcher):void {}
 
     addListener(fn:IEventListener<T>):Rx.Subscription {
         return this.state$.subscribe({

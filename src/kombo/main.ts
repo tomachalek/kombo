@@ -37,6 +37,9 @@ export interface IEventListener<T> {
     (state?:T):void;
 }
 
+export interface SEDispatcher {
+    (seAction:Action):void;
+}
 
 export interface IEventEmitter<T={}> {
     addListener(callback:(state?:T)=>void):Rx.Subscription;
@@ -46,11 +49,7 @@ export interface IEventEmitter<T={}> {
 
 export interface IReducer<T> {
     reduce(state:T, action:Action):T;
-}
-
-
-export interface SideEffectHandler<T> {
-    (state:T, action:Action, dispatch:(seAction:Action)=>void):void;
+    sideEffects(state:T, action:Action, dispatch:(seAction:Action)=>void):void;
 }
 
 
@@ -101,15 +100,15 @@ export class ActionDispatcher {
         return this.action$.subscribe(model);
     }
 
-    registerReducer<T>(model:IReducer<T>, initialState:T, sideEffects?:SideEffectHandler<T>):Rx.BehaviorSubject<T> {
+    registerReducer<T>(model:IReducer<T>, initialState:T):Rx.BehaviorSubject<T> {
         const state$ = new Rx.BehaviorSubject(initialState);
         this.action$
             .startWith(null)
             .scan(
                 (state:T, action:Action) => {
                     const newState = action !== null ? model.reduce(state, action) : state;
-                    sideEffects && action !== null ?
-                        sideEffects(
+                    action !== null ?
+                        model.sideEffects(
                             newState,
                             action,
                             (seAction:Action) => {

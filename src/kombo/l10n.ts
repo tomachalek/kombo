@@ -24,10 +24,9 @@ export class ViewUtils<T> {
 
     private components?:T;
 
-    constructor(uiLang='en-US', translations?:{[lang:string]:TranslationTable}, components?:T) {
+    constructor(uiLang='en-US', translations?:{[lang:string]:TranslationTable}) {
         this.uiLang = uiLang.replace('_', '-');
         this.translations = translations || {'en-US': {}};
-        this.components = components;
     }
 
     changeUILang(lang:string):void {
@@ -54,6 +53,10 @@ export class ViewUtils<T> {
 
     translate(key:string, args?:{[key:string]:string}):string {
         return this.translations[this.uiLang][key] || key;
+    }
+
+    attachComponents(components:T):void {
+        this.components = components;
     }
 
     getComponents():T|undefined {
