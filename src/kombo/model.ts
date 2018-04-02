@@ -49,11 +49,11 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
 
     private state$:Rx.BehaviorSubject<T>;
 
-    private wakeAction:Action|null;
+    private wakeFn:((action:Action)=>boolean)|null;
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerReducer(this, initialState);
-        this.wakeAction = null;
+        this.wakeFn = null;
     }
 
     abstract reduce(state:T, action:Action):T;
@@ -67,18 +67,18 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
         });
     }
 
-    suspend(wakeAction:Action):void {
-        this.wakeAction = wakeAction;
+    suspend(wakeFn:(action:Action)=>boolean):void {
+        this.wakeFn = wakeFn;
     }
 
     wakeUp(action:Action):void {
-        if (this.wakeAction && this.wakeAction.type === action.type) {
-            this.wakeAction = null;
+        if (typeof this.wakeFn === 'function' && this.wakeFn(action)) {
+            this.wakeFn = null;
         }
     }
 
     isActive():boolean {
-        return this.wakeAction === null;
+        return typeof this.wakeFn !== 'function';
     }
 
     getState():T {
