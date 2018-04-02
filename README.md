@@ -124,22 +124,23 @@ export class MyModel extends StatelessModel<MyState> {
 <a name="stateful_models"></a>
 ### Stateful models
 
-Stateful models are intended mainly for legacy code integration. They control how and when their internal
-state is changed in response to an action (they must explicitly call *emitChange* to notify their listeners -
-typically React components - that they should update their state).
+Stateful models provide more low-level and fine-grained control on how an action is processed as they
+have full access to their state and also to when they emit change or trigger side effect actions
+(in terms of stateful models, the respective method is called "synchronize").
 
-I.e. it is up to the React component to fetch required data using Stateful component's getters. The nature of
-stateful model cannot guarantee any "pure functional" relation between action and model state in time when the
-component starts attach the data. E.g. you can set some values from a form triggering a respective action but
-the component may internally asynchronously do some magic and you end up with different data visible. Properly
-designed and written applications probably avoid this but it is important to understand this important
-difference between stateless and stateful models.
+Stateful models can be great e.g. for legacy code integration or for situations when a respective state
+does contain non-serializable stuff (functions, dynamically loaded components). Such solutions can be
+considered ugly or "impure" but sometimes they are quite effective and easy to implement. Kombo does not
+force any specific approach here - if you want a clean "Redux-like" architecture you can stick with Stateless
+model. But if you consider a problem hard to implement that way, Stateful model is ready to help you. From
+the React component's view, both Stateless and Stateful components are the same and can be bound to any model
+via the *Bound* wrapper component.
 
 ```ts
 export class MyStatefulModel extends StatefulModel {
 
     constructor(dispatcher:ActionDispatcher) {
-        dispatcher.register(action => {
+        dispatcher.onAction(action => {
             switch (action.type) {
                 case 'GET_DATA':
                     this.isBusy = true;
@@ -160,6 +161,12 @@ export class MyStatefulModel extends StatefulModel {
                             this.emitChange();
                         }
                     )
+                break;
+                case 'ADD_USER':
+                    // 1) do some internal stuff
+                    // ....
+                    // 2) trigger other model(s)
+                    this.synchronize({type: 'ADD_MSG_IN_OTHER_MODEL'})
                 break;
             }
         });
