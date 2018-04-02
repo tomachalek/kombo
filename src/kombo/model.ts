@@ -115,4 +115,6 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
     }
 
     abstract getState():T;
+
+    abstract onAction(action:T):void;
 }
