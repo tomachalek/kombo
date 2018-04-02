@@ -106,6 +106,8 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     private change$:Rx.Subject<T>;
 
+    private dispatcher:ActionDispatcher;
+
     protected state:T;
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
@@ -122,7 +124,18 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         this.change$.next(this.getState());
     }
 
-    abstract getState():T;
+    getState():T {
+        return this.state;
+    }
+
+    synchronize(action:Action):void {
+        this.dispatcher.dispatch({
+            isSideEffect:true,
+            type: action.type,
+            payload: action.payload,
+            error: action.error
+        });
+    }
 
     abstract onAction(action:Action):void;
 }
