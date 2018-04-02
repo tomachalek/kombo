@@ -106,6 +106,14 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     private change$:Rx.Subject<T>;
 
+    protected state:T;
+
+    constructor(dispatcher:ActionDispatcher, initialState:T) {
+        this.state = initialState;
+        this.change$ = new Rx.BehaviorSubject<T>(initialState);
+        dispatcher.registerStatefulModel(this);
+    }
+
     addListener(fn:IEventListener<T>):Rx.Subscription {
         return this.change$.subscribe(fn);
     }
@@ -116,5 +124,5 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     abstract getState():T;
 
-    abstract onAction(action:T):void;
+    abstract onAction(action:Action):void;
 }
