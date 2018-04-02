@@ -107,7 +107,7 @@ export class ActionDispatcher {
                     const newState = action !== null && model.isActive() ?
                             model.reduce(state, action) :
                             state;
-                    action !== null ?
+                    action !== null && model.isActive() ?
                         model.sideEffects(
                             newState,
                             action,
