@@ -51,6 +51,8 @@ export interface IEventEmitter<T={}> {
 export interface IReducer<T> {
     reduce(state:T, action:Action):T;
     sideEffects(state:T, action:Action, dispatch:(seAction:Action)=>void):void;
+    isActive():boolean;
+    wakeUp(action:Action):void;
 }
 
 
@@ -101,7 +103,10 @@ export class ActionDispatcher {
             .startWith(null)
             .scan(
                 (state:T, action:Action) => {
-                    const newState = action !== null ? model.reduce(state, action) : state;
+                    model.wakeUp(action);
+                    const newState = action !== null && model.isActive() ?
+                            model.reduce(state, action) :
+                            state;
                     action !== null ?
                         model.sideEffects(
                             newState,

@@ -49,8 +49,11 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
 
     private state$:Rx.BehaviorSubject<T>;
 
+    private wakeAction:Action|null;
+
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerReducer(this, initialState);
+        this.wakeAction = null;
     }
 
     abstract reduce(state:T, action:Action):T;
@@ -62,6 +65,20 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
             next: fn,
             error: (err) => console.error(err)
         });
+    }
+
+    suspend(wakeAction:Action):void {
+        this.wakeAction = wakeAction;
+    }
+
+    wakeUp(action:Action):void {
+        if (this.wakeAction && this.wakeAction.type === action.type) {
+            this.wakeAction = null;
+        }
+    }
+
+    isActive():boolean {
+        return this.wakeAction === null;
     }
 
     getState():T {
@@ -113,7 +130,8 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state = initialState;
         this.change$ = new Rx.BehaviorSubject<T>(initialState);
-        dispatcher.registerStatefulModel(this);
+        this.dispatcher = dispatcher;
+        this.dispatcher.registerStatefulModel(this);
     }
 
     addListener(fn:IEventListener<T>):Rx.Subscription {
