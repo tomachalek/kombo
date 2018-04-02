@@ -15,6 +15,7 @@
  */
 
 import * as Rx from '@reactivex/rxjs';
+import { StatefulModel } from './model';
 
 
 export interface Action {
@@ -64,12 +65,6 @@ export namespace ActionHelper {
     };
 }
 
-
-/**
- *
- */
-export type IActionHandler = Rx.Observer<Action>;
-
 /**
  *
  */
@@ -96,8 +91,8 @@ export class ActionDispatcher {
         this.inAction$.next(action);
     }
 
-    registerActionHandler(model:IActionHandler):Rx.Subscription {
-        return this.action$.subscribe(model);
+    registerStatefulModel<T>(model:StatefulModel<T>):Rx.Subscription {
+        return this.action$.subscribe(model.onAction.bind(model));
     }
 
     registerReducer<T>(model:IReducer<T>, initialState:T):Rx.BehaviorSubject<T> {

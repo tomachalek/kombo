@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A simple base for client-side application based on React & Rx.JS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
