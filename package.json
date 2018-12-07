@@ -24,26 +24,26 @@
   },
   "homepage": "https://github.com/tomachalek/kombo#readme",
   "dependencies": {
-    "@reactivex/rxjs": "^5.5.6",
-    "@types/react": "^16.0.40",
-    "@types/react-dom": "^16.0.4",
+    "@reactivex/rxjs": "^5.5.12",
+    "@types/react": "^16.7.13",
+    "@types/react-dom": "^16.0.11",
     "immutable": "^3.8.2",
-    "react": "^16.2.0",
-    "react-dom": "^16.2.0"
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3"
   },
   "devDependencies": {
-    "css-loader": "^0.28.10",
+    "css-loader": "^1.0.1",
     "extract-text-webpack-plugin": "4.0.0-beta.0",
-    "file-loader": "^1.1.11",
-    "less": "^3.0.1",
-    "less-loader": "^4.0.6",
-    "style-loader": "^0.20.2",
-    "ts-loader": "^4.0.1",
-    "typescript": "^2.7.2",
-    "uglifyjs-webpack-plugin": "^1.2.2",
-    "webpack": "^4.0.1",
-    "webpack-cli": "^2.0.10",
-    "webpack-dev-server": "^3.1.0",
-    "webpack-merge": "^4.1.2"
+    "file-loader": "^2.0.0",
+    "less": "^3.9.0",
+    "less-loader": "^4.1.0",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.1",
+    "typescript": "^3.2.2",
+    "uglifyjs-webpack-plugin": "^2.0.1",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10",
+    "webpack-merge": "^4.1.4"
   }
 }
