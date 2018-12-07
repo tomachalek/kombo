@@ -18,20 +18,20 @@ import * as Rx from '@reactivex/rxjs';
 import { StatefulModel } from './model';
 
 
-export interface Action {
+export interface Action<T extends {[key:string]:any}={}> {
     type:string;
-    payload?:Error|{[key:string]:any};
-    error?:boolean;
+    payload?:T;
+    error?:Error;
     isSideEffect?:boolean;
 }
 
 
-export interface SideEffectAction extends Action {
+export interface SideEffectAction<T> extends Action<T> {
     isSideEffect:true;
 }
 
 
-export type AnyAction = Action | SideEffectAction;
+export type AnyAction<T> = Action<T> | SideEffectAction<T>;
 
 
 export interface IEventListener<T> {
@@ -39,7 +39,7 @@ export interface IEventListener<T> {
 }
 
 export interface SEDispatcher {
-    (seAction:Action):void;
+    (seAction:Action<{}>):void;
 }
 
 export interface IEventEmitter<T={}> {
@@ -49,35 +49,34 @@ export interface IEventEmitter<T={}> {
 
 
 export interface IReducer<T> {
-    reduce(state:T, action:Action):T;
-    sideEffects(state:T, action:Action, dispatch:(seAction:Action)=>void):void;
+    reduce(state:T, action:Action<{}>):T;
+    sideEffects(state:T, action:Action<{}>, dispatch:(seAction:Action<{}>)=>void):void;
     isActive():boolean;
-    wakeUp(action:Action):void;
+    wakeUp(action:Action<{}>):void;
 }
 
 
 export namespace ActionHelper {
 
-    export const getPayloadItem = <T>(action:AnyAction, item:string) => {
+    export const getPayloadItem = <T>(action:AnyAction<T>, item:string) => {
         return action.payload ? <T>action.payload[item] : undefined;
-    };
-
-    export const isSideEffect = (action:AnyAction) => {
-        return !!action.isSideEffect;
     };
 }
 
+export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}> {
+    return !!action.isSideEffect;
+};
 /**
  *
  */
 export class ActionDispatcher {
 
-    private inAction$:Rx.Subject<AnyAction>;
+    private inAction$:Rx.Subject<AnyAction<{}>|Rx.Observable<Action<{}>>>;
 
-    private action$:Rx.Observable<AnyAction>;
+    private action$:Rx.Observable<AnyAction<{}>>;
 
     constructor() {
-        this.inAction$ = new Rx.Subject<Action>();
+        this.inAction$ = new Rx.Subject<Action<{}>>();
         this.action$ = this.inAction$.flatMap(v => {
             if (v instanceof Rx.Observable) {
                 return v;
@@ -89,8 +88,12 @@ export class ActionDispatcher {
         this.dispatch = this.dispatch.bind(this);
     }
 
-    dispatch(action:AnyAction):void {
+    dispatch<T>(action:AnyAction<T>):void {
         this.inAction$.next(action);
+    }
+
+    insert<T>(sequence:Rx.Observable<Action<T>>):void {
+        this.inAction$.next(sequence);
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Rx.Subscription {
@@ -102,31 +105,32 @@ export class ActionDispatcher {
         this.action$
             .startWith(null)
             .scan(
-                (state:T, action:Action) => {
-                    model.wakeUp(action);
-                    const newState = action !== null && model.isActive() ?
-                            model.reduce(state, action) :
-                            state;
-                    action !== null && model.isActive() ?
-                        model.sideEffects(
-                            newState,
-                            action,
-                            (seAction:Action) => {
-                                if (action.isSideEffect) {
-                                    throw new Error('Nested side-effect not allowed');
-				                }
-                                window.setTimeout(() => {
-                                    this.dispatch({
-                                        isSideEffect:true,
-                                        type: seAction.type,
-                                        payload: seAction.payload,
-                                        error: seAction.error
-                                    });
-                                }, 0);
-                            }
-                        ) :
-                        null;
-                    return newState;
+                <U>(state:T, action:Action<U>) => {
+                    if (action !== null) {
+                        model.wakeUp(action);
+                        if (model.isActive()) {
+                            const newState = model.reduce(state, action);
+                            model.sideEffects(
+                                newState,
+                                action,
+                                <V>(seAction:Action<V>) => {
+                                    if (action.isSideEffect) {
+                                        throw new Error('Nested side-effect not allowed');
+                                    }
+                                    window.setTimeout(() => {
+                                        this.dispatch({
+                                            isSideEffect:true,
+                                            type: seAction.type,
+                                            payload: seAction.payload,
+                                            error: seAction.error
+                                        });
+                                    }, 0);
+                                }
+                            );
+                            return newState;
+                        }
+                    }
+                    return state;
                 },
                 initialState
             )
