@@ -18,20 +18,20 @@ import * as Rx from '@reactivex/rxjs';
 import { StatefulModel } from './model';
 
 
-export interface Action<T extends {[key:string]:any}={}> {
-    type:string;
-    payload?:T;
+export interface Action<T extends string=string, U extends {[key:string]:any}={}> {
+    type:T;
+    payload?:U;
     error?:Error;
     isSideEffect?:boolean;
 }
 
 
-export interface SideEffectAction<T> extends Action<T> {
+export interface SideEffectAction<T extends string, U> extends Action<T, U> {
     isSideEffect:true;
 }
 
 
-export type AnyAction<T> = Action<T> | SideEffectAction<T>;
+export type AnyAction<T extends string, U> = Action<T, U> | SideEffectAction<T, U>;
 
 
 export interface IEventListener<T> {
@@ -39,7 +39,7 @@ export interface IEventListener<T> {
 }
 
 export interface SEDispatcher {
-    (seAction:Action<{}>):void;
+    <T extends Action<string, {}>>(seAction:T):void;
 }
 
 export interface IEventEmitter<T={}> {
@@ -49,21 +49,21 @@ export interface IEventEmitter<T={}> {
 
 
 export interface IReducer<T> {
-    reduce(state:T, action:Action<{}>):T;
-    sideEffects(state:T, action:Action<{}>, dispatch:(seAction:Action<{}>)=>void):void;
+    reduce(state:T, action:Action<string, {}>):T;
+    sideEffects(state:T, action:Action<string, {}>, dispatch:(seAction:Action<string, {}>)=>void):void;
     isActive():boolean;
-    wakeUp(action:Action<{}>):void;
+    wakeUp(action:Action<string, {}>):void;
 }
 
 
 export namespace ActionHelper {
 
-    export const getPayloadItem = <T>(action:AnyAction<T>, item:string) => {
+    export const getPayloadItem = <T>(action:AnyAction<string, T>, item:string) => {
         return action.payload ? <T>action.payload[item] : undefined;
     };
 }
 
-export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}> {
+export function isSideEffect(action:AnyAction<string, {}>):action is SideEffectAction<string, {}> {
     return !!action.isSideEffect;
 };
 /**
@@ -71,12 +71,12 @@ export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}
  */
 export class ActionDispatcher {
 
-    private inAction$:Rx.Subject<AnyAction<{}>|Rx.Observable<Action<{}>>>;
+    private inAction$:Rx.Subject<AnyAction<string, {}>|Rx.Observable<Action<string, {}>>>;
 
-    private action$:Rx.Observable<AnyAction<{}>>;
+    private action$:Rx.Observable<AnyAction<string, {}>>;
 
     constructor() {
-        this.inAction$ = new Rx.Subject<Action<{}>>();
+        this.inAction$ = new Rx.Subject<Action<string, {}>>();
         this.action$ = this.inAction$.flatMap(v => {
             if (v instanceof Rx.Observable) {
                 return v;
@@ -88,11 +88,11 @@ export class ActionDispatcher {
         this.dispatch = this.dispatch.bind(this);
     }
 
-    dispatch<T>(action:AnyAction<T>):void {
+    dispatch<T extends AnyAction<string, {}>>(action:T):void {
         this.inAction$.next(action);
     }
 
-    insert<T>(sequence:Rx.Observable<Action<T>>):void {
+    insert<T extends AnyAction<string, {}>>(sequence:Rx.Observable<T>):void {
         this.inAction$.next(sequence);
     }
 
@@ -105,7 +105,7 @@ export class ActionDispatcher {
         this.action$
             .startWith(null)
             .scan(
-                <U>(state:T, action:Action<U>) => {
+                <U>(state:T, action:Action<string, U>) => {
                     if (action !== null) {
                         model.wakeUp(action);
                         if (model.isActive()) {
@@ -113,7 +113,7 @@ export class ActionDispatcher {
                             model.sideEffects(
                                 newState,
                                 action,
-                                <V>(seAction:Action<V>) => {
+                                <V>(seAction:Action<string, V>) => {
                                     if (action.isSideEffect) {
                                         throw new Error('Nested side-effect not allowed');
                                     }

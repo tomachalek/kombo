@@ -49,7 +49,7 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
 
     private state$:Rx.BehaviorSubject<T>;
 
-    private wakeFn:((action:Action<{}>)=>boolean)|null;
+    private wakeFn:((action:Action<string, {}>)=>boolean)|null;
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerReducer(this, initialState);
