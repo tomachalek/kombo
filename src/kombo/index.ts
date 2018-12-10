@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-export {Action, SideEffectAction, IEventListener, IReducer,
-        ActionDispatcher, ActionHelper, SEDispatcher} from './main';
+export {Action, SEDispatcher, SideEffectAction, IEventListener, IReducer,
+        ActionDispatcher, ActionHelper} from './main';
 export {Bound, BoundAux} from './components';
 export {ViewUtils} from './l10n';
 export {StatefulModel, StatelessModel, IModel, cloneState} from './model';
