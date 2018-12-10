@@ -18,7 +18,7 @@ import * as React from 'react';
 
 import {TodoState, TodoModel} from '../models/todo';
 import {Bound, ViewUtils, ActionDispatcher} from 'kombo';
-import { ActionTypes } from '../models/actions';
+import { ActionNames, Actions } from '../models/actions';
 
 
 export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoModel) {
@@ -34,8 +34,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
     }> = (props) => {
 
         const handleInputChange = (evt:React.ChangeEvent<{value:string}>) => {
-            dispatcher.dispatch({
-                type: ActionTypes.SET_TEXT_TODO,
+            dispatcher.dispatch<Actions.SetTextTodo>({
+                type: ActionNames.SetTextTodo,
                 payload: {
                     id: props.id,
                     value: evt.target.value
@@ -56,8 +56,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
     }> = (props) => {
 
         const handleCheckbox = (evt:React.ChangeEvent<{}>) => {
-            dispatcher.dispatch({
-                type: ActionTypes.TOGGLE_TODO,
+            dispatcher.dispatch<Actions.ToggleTodo>({
+                type: ActionNames.ToggleTodo,
                 payload: {
                     id: props.id
                 }
@@ -87,8 +87,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
         handleClick() {
             if (this.state.isActive) {
-                dispatcher.dispatch({
-                    type: ActionTypes.DELETE_TODO,
+                dispatcher.dispatch<Actions.DeleteTodo>({
+                    type: ActionNames.DeleteTodo,
                     payload: {id: this.props.id}
                 });
             }
@@ -142,8 +142,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
     const AddTodoButton = (props) => {
 
         const handleClick = () => {
-            dispatcher.dispatch({
-                type: ActionTypes.ADD_TODO
+            dispatcher.dispatch<Actions.AddTodo>({
+                type: ActionNames.AddTodo
             });
         }
 
@@ -158,8 +158,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
     }> = (props) => {
 
         const handleClick = () => {
-            dispatcher.dispatch({
-                type: ActionTypes.FETCH_TODOS
+            dispatcher.dispatch<Actions.FetchTodos>({
+                type: ActionNames.FetchTodos
             });
         };
 

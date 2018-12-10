@@ -14,11 +14,43 @@
  * limitations under the License.
  */
 
-export enum ActionTypes {
-    ADD_TODO = 'ADD_TODO',
-    SET_TEXT_TODO = 'SET_TEXT_TODO',
-    DELETE_TODO = 'DELETE_TODO',
-    TOGGLE_TODO = 'TOGGLE_TODO',
-    FETCH_TODOS = 'FETCH_TODOS',
-    FETCH_TODOS_DONE = 'FETCH_TODOS_DONE'
+import {Action} from 'kombo';
+import { ServerTask } from './mockapi';
+
+export enum ActionNames {
+    AddTodo = 'ADD_TODO',
+    SetTextTodo = 'SET_TEXT_TODO',
+    DeleteTodo = 'DELETE_TODO',
+    ToggleTodo = 'TOGGLE_TODO',
+    FetchTodos = 'FETCH_TODOS',
+    FetchTodosDone = 'FETCH_TODOS_DONE'
+}
+
+export namespace Actions {
+
+    export interface AddTodo extends Action<ActionNames.AddTodo, {
+        id:number;
+        value:string;
+    }> {}
+
+    export interface SetTextTodo extends Action<ActionNames.SetTextTodo, {
+        id:number;
+        value:string;
+    }> {}
+
+    export interface DeleteTodo extends Action<ActionNames.DeleteTodo, {
+        id:number;
+    }> {}
+
+    export interface ToggleTodo extends Action<ActionNames.ToggleTodo, {
+        id:number;
+    }> {}
+
+    export interface FetchTodos extends Action<ActionNames.FetchTodos, {
+
+    }> {}
+
+    export interface FetchTodosDone extends Action<ActionNames.FetchTodosDone, {
+        data:ServerTask[]
+    }> {}
 }

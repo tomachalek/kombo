@@ -17,7 +17,7 @@
 import * as Immutable from 'immutable';
 
 import {StatelessModel, Action, ActionDispatcher, SEDispatcher} from 'kombo';
-import {ActionTypes} from './actions';
+import {ActionNames, Actions} from './actions';
 import { ServerAPI } from './mockapi';
 
 
@@ -53,14 +53,14 @@ export class TodoModel extends StatelessModel<TodoState> {
     reduce(state:TodoState, action:Action):TodoState {
         const newState = this.copyState(state);
         switch (action.type) {
-            case ActionTypes.ADD_TODO:
+            case ActionNames.AddTodo:
                 newState.items = newState.items.push({
                     id: new Date().getTime(),
                     complete: false,
                     text: ''
                 });
             break;
-            case ActionTypes.SET_TEXT_TODO: {
+            case ActionNames.SetTextTodo: {
                 const srch = newState.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
                     const item = newState.items.get(srch);
@@ -72,14 +72,14 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
             break;
-            case ActionTypes.DELETE_TODO: {
+            case ActionNames.DeleteTodo: {
                 const srch = newState.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
                     newState.items = newState.items.remove(srch);
                 }
             }
             break;
-            case ActionTypes.TOGGLE_TODO: {
+            case ActionNames.ToggleTodo: {
                 const srch = newState.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
                     const v = newState.items.get(srch);
@@ -91,10 +91,10 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
             break;
-            case ActionTypes.FETCH_TODOS:
+            case ActionNames.FetchTodos:
                 newState.isBusy = true;
             break;
-            case ActionTypes.FETCH_TODOS_DONE:
+            case ActionNames.FetchTodosDone:
                 newState.isBusy = false;
                 newState.items = newState.items.concat(action.payload['data'].map(v => {
                     return {
@@ -110,11 +110,11 @@ export class TodoModel extends StatelessModel<TodoState> {
 
     sideEffects(state:TodoState, action:Action, dispatch:SEDispatcher):void {
         switch (action.type) {
-            case ActionTypes.FETCH_TODOS:
+            case ActionNames.FetchTodos:
                 const resp = this.serverApi.fetchData();
                 resp.subscribe(v => {
-                    dispatch({
-                        type: ActionTypes.FETCH_TODOS_DONE,
+                    dispatch<Actions.FetchTodosDone>({
+                        type: ActionNames.FetchTodosDone,
                         payload: {data: v}
                     });
                 });
