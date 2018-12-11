@@ -44,7 +44,10 @@ class IndexPage {
         const dispatcher = new ActionDispatcher();
         const api = new ServerAPI();
         const model = new TodoModel(dispatcher, api);
-        const viewUtils = new ViewUtils<{}>('en_US', this.translations);
+        const viewUtils = new ViewUtils<{}>({
+            uiLang: 'en_US',
+            translations: this.translations
+        });
         const component = viewInit(dispatcher, viewUtils, model);
         ReactDOM.render(
             React.createElement(component.TodoTable),
