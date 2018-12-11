@@ -16,6 +16,7 @@
 
 import * as Rx from '@reactivex/rxjs';
 import { StatefulModel } from './model';
+import { string } from 'prop-types';
 
 
 export interface Action<T extends string=string, U extends {[key:string]:any}={}> {
@@ -52,7 +53,7 @@ export interface IReducer<T> {
 }
 
 export interface SEDispatcher {
-    <T extends Action<string, {}>|Rx.Observable<Action<string, {}>>>(seAction:T):void;
+    <T extends Action<string, {}>>(seAction:T):void;
 }
 
 export namespace ActionHelper {
@@ -70,26 +71,20 @@ export function isSideEffect(action:AnyAction<string, {}>):action is SideEffectA
  */
 export class ActionDispatcher {
 
-    private inAsync$:Rx.Subject<Action<string, {}>|Rx.Observable<Action<string, {}>>>;
-
-    private inAction$:Rx.Subject<AnyAction<string, {}>>;
+    private inAction$:Rx.Subject<Action<string, {}>|Rx.Observable<Action<string, {}>>>;
 
     private action$:Rx.Observable<AnyAction<string, {}>>;
 
+    private inAsync$:Rx.Subject<Action<string, {}>>;
+
     constructor() {
         this.inAction$ = new Rx.Subject<AnyAction<string, {}>>();
-        this.action$ = this.inAction$.share();
-        this.inAsync$ = new Rx.Subject<Action<string, {}>>();
-        this.inAsync$.flatMap(v => {
-            if (v instanceof Rx.Observable) {
-                return v;
+        this.action$ = this.inAction$
+            .flatMap(v => v instanceof Rx.Observable ? v : Rx.Observable.of(v))
+            .share();
 
-            } else {
-                return Rx.Observable.of(v);
-            }
-        })
-        .observeOn(Rx.Scheduler.async)
-        .subscribe(action => {
+        this.inAsync$ = new Rx.Subject<Action<string, {}>>().observeOn(Rx.Scheduler.async) as Rx.Subject<Action<string, {}>>;
+        this.inAsync$.subscribe(action => {
             this.dispatch({
                 isSideEffect:true,
                 type: action.type,
@@ -100,12 +95,8 @@ export class ActionDispatcher {
         this.dispatch = this.dispatch.bind(this);
     }
 
-    dispatch<T extends Action<string, {}>>(action:T):void {
+    dispatch<T extends Action<string, {}|Rx.Observable<SideEffectAction<string, {}>>>>(action:T):void {
         this.inAction$.next(action);
-    }
-
-    attach$<T extends string, U>(stream:Rx.Observable<SideEffectAction<T, U>>):void {
-        this.inAsync$.next(stream);
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Rx.Subscription {
@@ -125,7 +116,7 @@ export class ActionDispatcher {
                             model.sideEffects(
                                 newState,
                                 action,
-                                (evt) => this.inAsync$.next(evt)
+                                (seAction) => this.inAsync$.next(seAction)
                             );
                             return newState;
                         }
