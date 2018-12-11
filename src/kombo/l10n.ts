@@ -16,6 +16,13 @@
 
 export type TranslationTable = {[key:string]:string};
 
+export interface ViewUtilsArgs {
+    translations:{[lang:string]:TranslationTable};
+    uiLang:string;
+    staticUrlCreator:(path:string)=>string;
+    actionUrlCreator:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
+}
+
 export class ViewUtils<T> {
 
     private uiLang:string;
@@ -24,9 +31,15 @@ export class ViewUtils<T> {
 
     private components?:T;
 
-    constructor(uiLang='en-US', translations?:{[lang:string]:TranslationTable}) {
+    readonly createStaticUrl:(path:string)=>string;
+
+    readonly createActionUrl:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
+
+    constructor({uiLang, translations, staticUrlCreator, actionUrlCreator}:ViewUtilsArgs) {
         this.uiLang = uiLang.replace('_', '-');
         this.translations = translations || {'en-US': {}};
+        this.createStaticUrl = staticUrlCreator ? staticUrlCreator : s => s;
+        this.createActionUrl = actionUrlCreator ? actionUrlCreator : (s, a) => s; // TODO ?
     }
 
     changeUILang(lang:string):void {
