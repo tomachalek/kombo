@@ -19,8 +19,8 @@ export type TranslationTable = {[key:string]:string};
 export interface ViewUtilsArgs {
     translations:{[lang:string]:TranslationTable};
     uiLang:string;
-    staticUrlCreator:(path:string)=>string;
-    actionUrlCreator:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
+    staticUrlCreator?:(path:string)=>string;
+    actionUrlCreator?:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
 }
 
 export class ViewUtils<T> {
