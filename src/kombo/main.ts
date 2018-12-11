@@ -104,6 +104,10 @@ export class ActionDispatcher {
         this.inAction$.next(action);
     }
 
+    attach$<T extends string, U>(stream:Rx.Observable<SideEffectAction<T, U>>):void {
+        this.inAsync$.next(stream);
+    }
+
     registerStatefulModel<T>(model:StatefulModel<T>):Rx.Subscription {
         return this.action$.subscribe(model.onAction.bind(model));
     }
