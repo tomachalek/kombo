@@ -38,23 +38,22 @@ export interface IEventListener<T> {
     (state?:T):void;
 }
 
-export interface SEDispatcher {
-    <T extends Action<string, {}>>(seAction:T):void;
-}
 
 export interface IEventEmitter<T={}> {
     addListener(callback:(state?:T)=>void):Rx.Subscription;
     emitChange():void;
 }
 
-
 export interface IReducer<T> {
     reduce(state:T, action:Action<string, {}>):T;
-    sideEffects(state:T, action:Action<string, {}>, dispatch:(seAction:Action<string, {}>)=>void):void;
+    sideEffects(state:T, action:Action<string, {}>, dispatch:SEDispatcher):void;
     isActive():boolean;
     wakeUp(action:Action<string, {}>):void;
 }
 
+export interface SEDispatcher {
+    <T extends Action<string, {}>|Rx.Observable<Action<string, {}>>>(seAction:T):void;
+}
 
 export namespace ActionHelper {
 
@@ -71,29 +70,38 @@ export function isSideEffect(action:AnyAction<string, {}>):action is SideEffectA
  */
 export class ActionDispatcher {
 
-    private inAction$:Rx.Subject<AnyAction<string, {}>|Rx.Observable<Action<string, {}>>>;
+    private inAsync$:Rx.Subject<Action<string, {}>|Rx.Observable<Action<string, {}>>>;
+
+    private inAction$:Rx.Subject<AnyAction<string, {}>>;
 
     private action$:Rx.Observable<AnyAction<string, {}>>;
 
     constructor() {
-        this.inAction$ = new Rx.Subject<Action<string, {}>>();
-        this.action$ = this.inAction$.flatMap(v => {
+        this.inAction$ = new Rx.Subject<AnyAction<string, {}>>();
+        this.action$ = this.inAction$.share();
+        this.inAsync$ = new Rx.Subject<Action<string, {}>>();
+        this.inAsync$.flatMap(v => {
             if (v instanceof Rx.Observable) {
                 return v;
 
             } else {
-                return Rx.Observable.from([v]);
+                return Rx.Observable.of(v);
             }
-        }).share();
+        })
+        .observeOn(Rx.Scheduler.async)
+        .subscribe(action => {
+            this.dispatch({
+                isSideEffect:true,
+                type: action.type,
+                payload: action.payload,
+                error: action.error
+            });
+        });
         this.dispatch = this.dispatch.bind(this);
     }
 
-    dispatch<T extends AnyAction<string, {}>>(action:T):void {
+    dispatch<T extends Action<string, {}>>(action:T):void {
         this.inAction$.next(action);
-    }
-
-    insert<T extends AnyAction<string, {}>>(sequence:Rx.Observable<T>):void {
-        this.inAction$.next(sequence);
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Rx.Subscription {
@@ -113,19 +121,7 @@ export class ActionDispatcher {
                             model.sideEffects(
                                 newState,
                                 action,
-                                <V>(seAction:Action<string, V>) => {
-                                    if (action.isSideEffect) {
-                                        throw new Error('Nested side-effect not allowed');
-                                    }
-                                    window.setTimeout(() => {
-                                        this.dispatch({
-                                            isSideEffect:true,
-                                            type: seAction.type,
-                                            payload: seAction.payload,
-                                            error: seAction.error
-                                        });
-                                    }, 0);
-                                }
+                                (evt) => this.inAsync$.next(evt)
                             );
                             return newState;
                         }

@@ -111,11 +111,10 @@ export class TodoModel extends StatelessModel<TodoState> {
     sideEffects(state:TodoState, action:Action, dispatch:SEDispatcher):void {
         switch (action.type) {
             case ActionNames.FetchTodos:
-                const resp = this.serverApi.fetchData();
-                resp.subscribe(v => {
-                    dispatch<Actions.FetchTodosDone>({
-                        type: ActionNames.FetchTodosDone,
-                        payload: {data: v}
+                this.serverApi.fetchData().subscribe(v => {
+                    dispatch({
+                            type: ActionNames.FetchTodosDone,
+                            payload: {data: v}
                     });
                 });
             break;
