@@ -17,7 +17,7 @@
 /// <reference path="../compat.d.ts" />
 
 import * as Rx from '@reactivex/rxjs';
-import {IEventEmitter, IReducer, Action, ActionDispatcher, IEventListener, SEDispatcher} from './main';
+import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel} from './main';
 
 /**
  * A general model implementation as viewed from
@@ -45,14 +45,14 @@ export interface IModel<T> {
  * may trigger app's "file manager" model to store a message attachment as
  * a side effect).
  */
-export abstract class StatelessModel<T extends object> implements IReducer<T>, IModel<T> {
+export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
 
     private state$:Rx.BehaviorSubject<T>;
 
     private wakeFn:((action:Action)=>boolean)|null;
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
-        this.state$ = dispatcher.registerReducer(this, initialState);
+        this.state$ = dispatcher.registerModel(this, initialState);
         this.wakeFn = null;
     }
 
