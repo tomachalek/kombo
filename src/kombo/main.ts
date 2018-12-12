@@ -44,8 +44,12 @@ export interface IEventEmitter<T={}> {
     emitChange():void;
 }
 
-export interface IReducer<T> {
-    reduce(state:T, action:Action):T;
+export interface IReducer<T, U extends Action> {
+    (state:T, action:U):T;
+}
+
+export interface IStatelessModel<T> {
+    reduce:IReducer<T, Action>;
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
     isActive():boolean;
     wakeUp(action:Action):void;
@@ -102,7 +106,7 @@ export class ActionDispatcher {
         return this.action$.subscribe(model.onAction.bind(model));
     }
 
-    registerReducer<T>(model:IReducer<T>, initialState:T):Rx.BehaviorSubject<T> {
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):Rx.BehaviorSubject<T> {
         const state$ = new Rx.BehaviorSubject(initialState);
         this.action$
             .startWith(null)
