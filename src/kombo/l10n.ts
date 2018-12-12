@@ -16,6 +16,10 @@
 
 export type TranslationTable = {[key:string]:string};
 
+
+export type ComponentLib = {[key:string]:React.SFC|React.ComponentClass};
+
+
 export interface ViewUtilsArgs {
     translations:{[lang:string]:TranslationTable};
     uiLang:string;
@@ -23,11 +27,11 @@ export interface ViewUtilsArgs {
     actionUrlCreator?:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
 }
 
-export class ViewUtils<T> {
+export class ViewUtils<T extends ComponentLib> {
 
     private uiLang:string;
 
-    private translations:{[lang:string]:TranslationTable};
+    private readonly translations:{[lang:string]:TranslationTable};
 
     private components?:T;
 
