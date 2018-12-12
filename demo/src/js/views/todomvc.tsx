@@ -35,7 +35,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
         const handleInputChange = (evt:React.ChangeEvent<{value:string}>) => {
             dispatcher.dispatch<Actions.SetTextTodo>({
-                type: ActionNames.SetTextTodo,
+                name: ActionNames.SetTextTodo,
                 payload: {
                     id: props.id,
                     value: evt.target.value
@@ -57,7 +57,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
         const handleCheckbox = (evt:React.ChangeEvent<{}>) => {
             dispatcher.dispatch<Actions.ToggleTodo>({
-                type: ActionNames.ToggleTodo,
+                name: ActionNames.ToggleTodo,
                 payload: {
                     id: props.id
                 }
@@ -88,7 +88,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
         handleClick() {
             if (this.state.isActive) {
                 dispatcher.dispatch<Actions.DeleteTodo>({
-                    type: ActionNames.DeleteTodo,
+                    name: ActionNames.DeleteTodo,
                     payload: {id: this.props.id}
                 });
             }
@@ -143,7 +143,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
         const handleClick = () => {
             dispatcher.dispatch<Actions.AddTodo>({
-                type: ActionNames.AddTodo
+                name: ActionNames.AddTodo
             });
         }
 
@@ -159,7 +159,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
         const handleClick = () => {
             dispatcher.dispatch<Actions.FetchTodos>({
-                type: ActionNames.FetchTodos
+                name: ActionNames.FetchTodos
             });
         };
 

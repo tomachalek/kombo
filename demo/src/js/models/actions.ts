@@ -28,29 +28,41 @@ export enum ActionNames {
 
 export namespace Actions {
 
-    export interface AddTodo extends Action<ActionNames.AddTodo, {
+    export interface AddTodo extends Action<{
         id:number;
         value:string;
-    }> {}
+    }> {
+        name:ActionNames.AddTodo;
+    }
 
-    export interface SetTextTodo extends Action<ActionNames.SetTextTodo, {
+    export interface SetTextTodo extends Action<{
         id:number;
         value:string;
-    }> {}
+    }> {
+        name:ActionNames.SetTextTodo;
+    }
 
-    export interface DeleteTodo extends Action<ActionNames.DeleteTodo, {
+    export interface DeleteTodo extends Action<{
         id:number;
-    }> {}
+    }> {
+        name:ActionNames.DeleteTodo;
+    }
 
-    export interface ToggleTodo extends Action<ActionNames.ToggleTodo, {
+    export interface ToggleTodo extends Action<{
         id:number;
-    }> {}
+    }> {
+        name:ActionNames.ToggleTodo;
+    }
 
-    export interface FetchTodos extends Action<ActionNames.FetchTodos, {
+    export interface FetchTodos extends Action<{
 
-    }> {}
+    }> {
+        name:ActionNames.FetchTodos;
+    }
 
-    export interface FetchTodosDone extends Action<ActionNames.FetchTodosDone, {
+    export interface FetchTodosDone extends Action<{
         data:ServerTask[]
-    }> {}
+    }> {
+        name:ActionNames.FetchTodosDone;
+    }
 }

@@ -49,7 +49,7 @@ export abstract class StatelessModel<T extends object> implements IReducer<T>, I
 
     private state$:Rx.BehaviorSubject<T>;
 
-    private wakeFn:((action:Action<string, {}>)=>boolean)|null;
+    private wakeFn:((action:Action)=>boolean)|null;
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerReducer(this, initialState);
@@ -149,7 +149,7 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
     synchronize(action:Action):void {
         this.dispatcher.dispatch({
             isSideEffect:true,
-            type: action.type,
+            name: action.name,
             payload: action.payload,
             error: action.error
         });

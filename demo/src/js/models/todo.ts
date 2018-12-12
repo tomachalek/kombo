@@ -52,7 +52,7 @@ export class TodoModel extends StatelessModel<TodoState> {
 
     reduce(state:TodoState, action:Action):TodoState {
         const newState = this.copyState(state);
-        switch (action.type) {
+        switch (action.name) {
             case ActionNames.AddTodo:
                 newState.items = newState.items.push({
                     id: new Date().getTime(),
@@ -109,11 +109,11 @@ export class TodoModel extends StatelessModel<TodoState> {
     }
 
     sideEffects(state:TodoState, action:Action, dispatch:SEDispatcher):void {
-        switch (action.type) {
+        switch (action.name) {
             case ActionNames.FetchTodos:
                 this.serverApi.fetchData().subscribe(v => {
                     dispatch({
-                            type: ActionNames.FetchTodosDone,
+                            name: ActionNames.FetchTodosDone,
                             payload: {data: v}
                     });
                 });

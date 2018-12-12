@@ -16,23 +16,22 @@
 
 import * as Rx from '@reactivex/rxjs';
 import { StatefulModel } from './model';
-import { string } from 'prop-types';
 
 
-export interface Action<T extends string=string, U extends {[key:string]:any}={}> {
-    type:T;
-    payload?:U;
+export interface Action<T extends {[key:string]:any}={}> {
+    name:string;
+    payload?:T;
     error?:Error;
     isSideEffect?:boolean;
 }
 
 
-export interface SideEffectAction<T extends string, U> extends Action<T, U> {
+export interface SideEffectAction<T> extends Action<T> {
     isSideEffect:true;
 }
 
 
-export type AnyAction<T extends string, U> = Action<T, U> | SideEffectAction<T, U>;
+export type AnyAction<T> = Action<T> | SideEffectAction<T>;
 
 
 export interface IEventListener<T> {
@@ -46,24 +45,24 @@ export interface IEventEmitter<T={}> {
 }
 
 export interface IReducer<T> {
-    reduce(state:T, action:Action<string, {}>):T;
-    sideEffects(state:T, action:Action<string, {}>, dispatch:SEDispatcher):void;
+    reduce(state:T, action:Action):T;
+    sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
     isActive():boolean;
-    wakeUp(action:Action<string, {}>):void;
+    wakeUp(action:Action):void;
 }
 
 export interface SEDispatcher {
-    <T extends Action<string, {}>>(seAction:T):void;
+    <T>(seAction:Action<T>):void;
 }
 
 export namespace ActionHelper {
 
-    export const getPayloadItem = <T>(action:AnyAction<string, T>, item:string) => {
+    export const getPayloadItem = <T>(action:AnyAction<T>, item:string) => {
         return action.payload ? <T>action.payload[item] : undefined;
     };
 }
 
-export function isSideEffect(action:AnyAction<string, {}>):action is SideEffectAction<string, {}> {
+export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}> {
     return !!action.isSideEffect;
 };
 /**
@@ -71,23 +70,23 @@ export function isSideEffect(action:AnyAction<string, {}>):action is SideEffectA
  */
 export class ActionDispatcher {
 
-    private inAction$:Rx.Subject<Action<string, {}>|Rx.Observable<Action<string, {}>>>;
+    private inAction$:Rx.Subject<Action|Rx.Observable<Action>>;
 
-    private action$:Rx.Observable<AnyAction<string, {}>>;
+    private action$:Rx.Observable<AnyAction<{}>>;
 
-    private inAsync$:Rx.Subject<Action<string, {}>>;
+    private inAsync$:Rx.Subject<Action>;
 
     constructor() {
-        this.inAction$ = new Rx.Subject<AnyAction<string, {}>>();
+        this.inAction$ = new Rx.Subject<AnyAction<{}>>();
         this.action$ = this.inAction$
             .flatMap(v => v instanceof Rx.Observable ? v : Rx.Observable.of(v))
             .share();
 
-        this.inAsync$ = new Rx.Subject<Action<string, {}>>().observeOn(Rx.Scheduler.async) as Rx.Subject<Action<string, {}>>;
+        this.inAsync$ = new Rx.Subject<Action>().observeOn(Rx.Scheduler.async) as Rx.Subject<Action>;
         this.inAsync$.subscribe(action => {
             this.dispatch({
                 isSideEffect:true,
-                type: action.type,
+                name: action.name,
                 payload: action.payload,
                 error: action.error
             });
@@ -95,7 +94,7 @@ export class ActionDispatcher {
         this.dispatch = this.dispatch.bind(this);
     }
 
-    dispatch<T extends Action<string, {}|Rx.Observable<SideEffectAction<string, {}>>>>(action:T):void {
+    dispatch<T extends Action|Rx.Observable<Action>>(action:T):void {
         this.inAction$.next(action);
     }
 
@@ -108,7 +107,7 @@ export class ActionDispatcher {
         this.action$
             .startWith(null)
             .scan(
-                <U>(state:T, action:Action<string, U>) => {
+                <U>(state:T, action:Action<U>) => {
                     if (action !== null) {
                         model.wakeUp(action);
                         if (model.isActive()) {
