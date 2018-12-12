@@ -53,12 +53,11 @@ It is expected that the state is a traditional JS object with (ideally) immutabl
 (shallow) state copying when reducing without fear of strange app behavior. The best way to achieve this is
 to use primitive values (string, number, boolean) combined with immutable structured data types (e.g. Immutable.js).
 
-
-To be able to perform asynchornous API calls, synchronize/notify other possible stores etc., stateless model
+To be able to perform asynchornous API calls, synchronize/notify other models etc., stateless model
 can specify its side effects bound to different actions. These effects are invoked once their respective actions
-reduce the current state. Side-effect actions should be dispatched via provided *dispatch* function (i.e. not
-via global dispatcher) because it is handled in a special way to prevent infinite long action chains or even
-action loops.
+reduce the current state (i.e. you can be always sure that all the reduce actions on all models have been already performed - so it's quite safe to access other models' state). Side-effect actions are dispatched at will via a provided function (see `SEDispatcher` type). In this way it is possible to build chains of asynchronous actions with multiple actions dispatched during different stages of the process.
+
+Actions dispatched via `SEDispatcher` are internally transformed into `SideEffectAction` type which cannot invoke another action via the internal action/state stream. This prevents user from creating hard to track cycles of actions.
 
 ```ts
 
