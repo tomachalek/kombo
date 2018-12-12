@@ -52,7 +52,7 @@ export interface IReducer<T> {
 }
 
 export interface SEDispatcher {
-    <T>(seAction:Action<T>):void;
+    <T extends Action>(seAction:T):void;
 }
 
 export namespace ActionHelper {
