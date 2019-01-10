@@ -20,6 +20,14 @@ export type TranslationTable = {[key:string]:string};
 export type ComponentLib = {[key:string]:React.SFC|React.ComponentClass};
 
 
+export interface ITranslator {
+
+    translate(key:string, args?:{[key:string]:string}):string;
+
+    formatDate(d:Date, timeFormat?:number):string;
+}
+
+
 export interface ViewUtilsArgs {
     translations:{[lang:string]:TranslationTable};
     uiLang:string;
@@ -27,7 +35,8 @@ export interface ViewUtilsArgs {
     actionUrlCreator?:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
 }
 
-export class ViewUtils<T extends ComponentLib> {
+
+export class ViewUtils<T extends ComponentLib> implements ITranslator {
 
     private uiLang:string;
 
