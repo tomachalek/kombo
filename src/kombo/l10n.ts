@@ -17,7 +17,7 @@
 export type TranslationTable = {[key:string]:string};
 
 
-export type ComponentLib<T> = {[key in keyof T]:React.SFC|React.ComponentClass};
+export type ComponentLib<T> = {[key in keyof T]:T[key]};
 
 
 export interface ITranslator {
