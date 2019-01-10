@@ -17,7 +17,7 @@
 export type TranslationTable = {[key:string]:string};
 
 
-export type ComponentLib = {[key:string]:React.SFC|React.ComponentClass};
+export type ComponentLib<T> = {[key in keyof T]:React.SFC|React.ComponentClass};
 
 
 export interface ITranslator {
@@ -36,13 +36,13 @@ export interface ViewUtilsArgs {
 }
 
 
-export class ViewUtils<T extends ComponentLib> implements ITranslator {
+export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
 
     private uiLang:string;
 
     private readonly translations:{[lang:string]:TranslationTable};
 
-    private components?:T;
+    private components?:ComponentLib<T>;
 
     readonly createStaticUrl:(path:string)=>string;
 
@@ -61,8 +61,8 @@ export class ViewUtils<T extends ComponentLib> implements ITranslator {
 
     /**
      * @param d a Date object
-     * @param timeFormat 0 = no time, 1 = hours + minutes, 2 = hours + minutes + seconds
-     *  (hours, minutes and seconds are always in 2-digit format)
+     * @param timeFormat 0 = no tiConcreteComponentsme, 1 = hours + minutes, 2 = hours + minutes + seconds
+     *  (hours, minutes and secondConcreteComponentss are always in 2-digit format)
      */
     formatDate(d:Date, timeFormat:number=0):string {
         const opts = {year: 'numeric', month: '2-digit', day: '2-digit'};
@@ -85,7 +85,7 @@ export class ViewUtils<T extends ComponentLib> implements ITranslator {
         this.components = components;
     }
 
-    getComponents():T|undefined {
+    getComponents():ComponentLib<T>|undefined {
         return this.components;
     }
 
