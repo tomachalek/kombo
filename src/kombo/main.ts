@@ -15,7 +15,7 @@
  */
 
 import * as Rx from '@reactivex/rxjs';
-import { StatefulModel } from './model';
+import { StatefulModel, IActionCapturer } from './model';
 
 
 export interface Action<T extends {[key:string]:any}={}> {
@@ -23,6 +23,7 @@ export interface Action<T extends {[key:string]:any}={}> {
     payload?:T;
     error?:Error;
     isSideEffect?:boolean;
+
 }
 
 
@@ -80,10 +81,19 @@ export class ActionDispatcher {
 
     private inAsync$:Rx.Subject<Action>;
 
+    private capturedActions:{[actionName:string]:IActionCapturer};
+
+    private capturedActions$:Rx.Observable<Action<{}>>;
+
     constructor() {
+        this.capturedActions = {};
         this.inAction$ = new Rx.Subject<AnyAction<{}>>();
-        this.action$ = this.inAction$
-            .flatMap(v => v instanceof Rx.Observable ? v : Rx.Observable.of(v))
+        const flattened$ = this.inAction$.flatMap(v => v instanceof Rx.Observable ? v : Rx.Observable.of(v));
+        this.action$ = flattened$
+            .filter(v => !(v.name in this.capturedActions))
+            .share();
+        this.capturedActions$ = flattened$
+            .filter(action => action.name in this.capturedActions && this.capturedActions[action.name](action))
             .share();
 
         this.inAsync$ = new Rx.Subject<Action>().observeOn(Rx.Scheduler.async) as Rx.Subject<Action>;
@@ -98,6 +108,15 @@ export class ActionDispatcher {
         this.dispatch = this.dispatch.bind(this);
     }
 
+    captureAction(actionName:string, capturer:IActionCapturer):void {
+        if (actionName in this.capturedActions) {
+            throw new Error(`Action ${actionName} already captured`);
+
+        } else {
+            this.capturedActions[actionName] = capturer;
+        }
+    }
+
     dispatch<T extends Action|Rx.Observable<Action>>(action:T):void {
         this.inAction$.next(action);
     }
@@ -108,7 +127,7 @@ export class ActionDispatcher {
 
     registerModel<T>(model:IStatelessModel<T>, initialState:T):Rx.BehaviorSubject<T> {
         const state$ = new Rx.BehaviorSubject(initialState);
-        this.action$
+        this.action$.merge(this.capturedActions$)
             .startWith(null)
             .scan(
                 <U>(state:T, action:Action<U>) => {
@@ -116,11 +135,13 @@ export class ActionDispatcher {
                         model.wakeUp(action);
                         if (model.isActive()) {
                             const newState = model.reduce(state, action);
-                            model.sideEffects(
-                                newState,
-                                action,
-                                (seAction) => this.inAsync$.next(seAction)
-                            );
+                            if (!action.isSideEffect) {
+                                model.sideEffects(
+                                    newState,
+                                    action,
+                                    (seAction) => this.inAsync$.next(seAction)
+                                );
+                            }
                             return newState;
                         }
                     }
