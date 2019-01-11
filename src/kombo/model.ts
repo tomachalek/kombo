@@ -19,6 +19,11 @@
 import * as Rx from '@reactivex/rxjs';
 import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel} from './main';
 
+
+export interface IActionCapturer {
+    (action:Action):boolean;
+}
+
 /**
  * A general model implementation as viewed from
  * the perspective of a React component.

@@ -32,5 +32,8 @@ module.exports = {
     externals: [
         '@reactivex/rxjs',
         'react'
-    ]
+    ],
+    optimization: {
+        minimize: false
+      }
 };
