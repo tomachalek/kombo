@@ -17,7 +17,7 @@
 /// <reference path="../compat.d.ts" />
 
 import * as Rx from '@reactivex/rxjs';
-import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel} from './main';
+import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel, IReducer} from './main';
 
 
 export interface IActionCapturer {
@@ -56,15 +56,44 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
 
     private wakeFn:((action:Action)=>boolean)|null;
 
+    /**
+     * In case you don't want to implement your custom reduce function, it is expected
+     * that you fill in some mapping to the actionMatch attribute:
+     *
+     * this.actionMatch = {
+     *    'SOME_ACTION_NAME': (state, action:Action) => {
+     *        const newState = this.copyState(state);
+     *        newState.framesSizes = Immutable.List<[number, number]>(action.payload.values);
+     *        return newState;
+     *     }
+     * }
+     */
+    protected actionMatch:{[actionName:string]:IReducer<T, Action>};
+
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerModel(this, initialState);
         this.wakeFn = null;
+        this.actionMatch = {};
     }
 
-    abstract reduce(state:T, action:Action):T;
+    /**
+     * Default reduce implementation uses actionMatch mapping.
+     * It is perfectly OK to implement a custom solution here
+     * (e.g. using switch) but in most cases, it won't probably
+     * provide any advantages.
+     */
+    reduce(state:T, action:Action):T {
+        return action.name in this.actionMatch ? this.actionMatch[action.name](state, action) : state;
+    }
 
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void {}
 
+    /**
+     * Adds model listener. This is typically called in React's componentDidMount.
+     * Please note that there is no removeListener. The function returns an Rx.Subscription
+     * instance you may store and when component is unmounting you can just call
+     * .unsubscribe.
+     */
     addListener(fn:IEventListener<T>):Rx.Subscription {
         return this.state$.subscribe({
             next: fn,
