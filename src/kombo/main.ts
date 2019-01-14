@@ -57,7 +57,7 @@ export interface IStatelessModel<T> {
 }
 
 export interface SEDispatcher {
-    <T extends Action>(seAction:T):void;
+    <T extends Action>(seAction:T, waitFor?:string):Rx.Subscription|null;
 }
 
 export namespace ActionHelper {
@@ -127,7 +127,8 @@ export class ActionDispatcher {
 
     registerModel<T>(model:IStatelessModel<T>, initialState:T):Rx.BehaviorSubject<T> {
         const state$ = new Rx.BehaviorSubject(initialState);
-        this.action$.merge(this.capturedActions$)
+        const actions$ = this.action$.merge(this.capturedActions$);
+        actions$
             .startWith(null)
             .scan(
                 <U>(state:T, action:Action<U>) => {
@@ -139,7 +140,19 @@ export class ActionDispatcher {
                                 model.sideEffects(
                                     newState,
                                     action,
-                                    (seAction) => this.inAsync$.next(seAction)
+                                    (seAction, waitFor) => {
+                                        if (waitFor) {
+                                            return actions$.filter(v => v.name === waitFor).first().subscribe(
+                                                () => {
+                                                    this.inAsync$.next(seAction);
+                                                }
+                                            );
+
+                                        } else {
+                                            this.inAsync$.next(seAction);
+                                            return null;
+                                        }
+                                    }
                                 );
                             }
                             return newState;
