@@ -17,7 +17,6 @@
 import * as React from 'react';
 import * as Rx from '@reactivex/rxjs';
 import {IModel, cloneState} from './model';
-import { ActionDispatcher } from './main';
 
 /**
  * Bound is a component wrapper mapping a state handled by a IModel
