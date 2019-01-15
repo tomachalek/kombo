@@ -25,6 +25,8 @@ export interface ITranslator {
     translate(key:string, args?:{[key:string]:string}):string;
 
     formatDate(d:Date, timeFormat?:number):string;
+
+    formatNumber(v:number, fractionDigits:number):string;
 }
 
 
@@ -75,6 +77,13 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
             opts['second'] = '2-digit';
         }
         return new Intl.DateTimeFormat(this.uiLang, opts).format(d);
+    }
+
+    formatNumber(v:number, fractionDigits:number=2):string {
+        let format:any = new Intl.NumberFormat(this.uiLang, {
+            maximumFractionDigits: fractionDigits
+        });
+        return format.format(v);
     }
 
     translate(key:string, args?:{[key:string]:string}):string {
