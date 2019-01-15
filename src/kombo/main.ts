@@ -57,7 +57,7 @@ export interface IStatelessModel<T> {
 }
 
 export interface SEDispatcher {
-    <T extends Action>(seAction:T, waitFor?:string):Rx.Subscription|null;
+    <T extends Action>(seAction:T):void;
 }
 
 export namespace ActionHelper {
@@ -140,19 +140,7 @@ export class ActionDispatcher {
                                 model.sideEffects(
                                     newState,
                                     action,
-                                    (seAction, waitFor) => {
-                                        if (waitFor) {
-                                            return actions$.filter(v => v.name === waitFor).first().subscribe(
-                                                () => {
-                                                    this.inAsync$.next(seAction);
-                                                }
-                                            );
-
-                                        } else {
-                                            this.inAsync$.next(seAction);
-                                            return null;
-                                        }
-                                    }
+                                    seAction => this.inAsync$.next(seAction)
                                 );
                             }
                             return newState;
