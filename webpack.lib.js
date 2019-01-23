@@ -27,7 +27,10 @@ module.exports = {
         modules: [
             'node_modules'
         ],
-        extensions: ['.ts']
+        extensions: ['.ts', '.js'],
+        alias: {
+            'vendor/intl-messageformat': mkpath('vendor/intl-messageformat')
+        }
     },
     externals: [
         '@reactivex/rxjs',
