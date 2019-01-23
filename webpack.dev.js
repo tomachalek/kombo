@@ -21,7 +21,8 @@ module.exports = {
     },
     resolve: {
         alias: {
-            'kombo': path.resolve(__dirname, 'src/kombo')
+            'kombo': path.resolve(__dirname, 'src/kombo'),
+            'vendor/intl-messageformat': mkpath('../../../src/vendor/intl-messageformat')
         },
         modules: [
             'node_modules'

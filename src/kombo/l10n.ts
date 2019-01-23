@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/// <reference path="../vendor.d.ts" />
+import IntlMessageFormat = require('vendor/intl-messageformat');
+
+
 export type TranslationTable = {[key:string]:string};
 
 
@@ -40,9 +44,13 @@ export interface ViewUtilsArgs {
 
 export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
 
+    public static readonly DEFAULT_LANG = 'en-US';
+
     private uiLang:string;
 
     private readonly translations:{[lang:string]:TranslationTable};
+
+    private currTranslation:TranslationTable;
 
     private components?:ComponentLib<T>;
 
@@ -52,13 +60,31 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
 
     constructor({uiLang, translations, staticUrlCreator, actionUrlCreator}:ViewUtilsArgs) {
         this.uiLang = uiLang.replace('_', '-');
-        this.translations = translations || {'en-US': {}};
+        this.translations = translations || {[ViewUtils.DEFAULT_LANG]: {}};
+        this.currTranslation = this.translations[this.ensureLangKey(this.uiLang)];
         this.createStaticUrl = staticUrlCreator ? staticUrlCreator : s => s;
         this.createActionUrl = actionUrlCreator ? actionUrlCreator : (s, a) => s; // TODO ?
     }
 
+    private ensureLangKey(lang:string):string {
+        if (lang in this.translations) {
+            return lang;
+        }
+        const langBase = lang.split('-')[0];
+        const langs = Object.keys(this.translations);
+        for (let i = 0; i < langs.length; i += 1) {
+            if (langs[i].split('-')[0] == langBase) {
+                console.warn(`Found only a partially matching translation for ${lang}`);
+                return langs[i];
+            }
+        }
+        console.error(`Cannot find a translation for ${lang}. Falling back to ${ViewUtils.DEFAULT_LANG}`);
+        return ViewUtils.DEFAULT_LANG;
+    }
+
     changeUILang(lang:string):void {
         this.uiLang = lang;
+        this.currTranslation = this.translations[this.ensureLangKey(this.uiLang)];
     }
 
     /**
@@ -87,7 +113,20 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
     }
 
     translate(key:string, args?:{[key:string]:string}):string {
-        return this.translations[this.uiLang][key] || key;
+        if (key) {
+            const tmp = this.currTranslation[key];
+            if (tmp) {
+                try {
+                    return args ? new IntlMessageFormat(tmp, this.uiLang).format(args) : tmp;
+
+                } catch (e) {
+                    console.error('Failed to translate ', key, e);
+                    return tmp;
+                }
+            }
+            return key;
+        }
+        return '';
     }
 
     attachComponents(components:T):void {
