@@ -137,4 +137,14 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
         return this.components;
     }
 
+    getElementSize(elm:HTMLElement, dflt?:[number, number]):[number, number] {
+        if (elm) {
+            return [elm.getBoundingClientRect().width, elm.getBoundingClientRect().height];
+
+        } else if (dflt) {
+            return dflt;
+        }
+        return [-1, -1];
+    }
+
 }
