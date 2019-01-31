@@ -55,85 +55,41 @@ export const Bound = <T extends object>(wrapped:React.ComponentClass<T>, model:I
     }
 }
 
-/**
- * A state used by an auxiliary model to feed its React component
- * with both its 'own' state and some other ('extended' in a sense)
- * state (accessed by '_' property).
- */
-export interface ExtendedState<T> {
-    _:T;
-}
 
 /**
- * While simple 'Bound' is a preferred way of connecting a component to a model,
- * in some cases it may be easier to have a component which listens for two models:
- * E.g. we have a core functionality represented by state T which allows some
- * customized (e.g. plug-in based) extensions. The state T typically reflects
- * the extension's external behavior (interface) in some way. But a concrete extension
- * will probably need also some internal state which should not be mixed with core
- * functionality of the application.
- *
- * One way of handling this is to make models to communicate via side effects,
- * But this should be rather seen as a communication via lightweight messages
- * (i.e. nothing like "here I react to a side effect by sending others my
- * whole state").
- * Another way is to split a component in two with different model mappings
- * (one listening for changes in core state and one listening to the extension).
- *
- * But sometimes it can be much easier to just listen for changes in both
- * states within a single component.
- *
- * Althought listening for any number of components would be possible too
- * (probably with some type system issues) it is not implemented to prevent
- * messy architectural decisions (you can think of it as an analogy to
- * single vs. multiple inheritance).
- *
- *
- * @param wrapped
- * @param ownModel
- * @param theirModel
+ * While Bound() creates a completely isolated component connected only with its
+ * attached model, BoundWithProps() allows you to pass also properties to the
+ * bound component. Please note that both model state and passed props are mixed
+ * into props of an inner component with means you have to manage possible
+ * key conflicts. In case there are conflicting keys, passed props take precedence
+ * over models data.
  */
-export const BoundAux = <T extends object, U extends ExtendedState<T>>(wrapped:React.ComponentClass<U>, ownModel:IModel<U>, theirModel:IModel<T>) => {
+export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>, model:IModel<S>) => {
 
-    return class BoundComponent extends React.Component<{}, U> {
+    return class BoundComponent extends React.Component<P, S> {
 
-        _subscription1:Rx.Subscription;
-
-        _subscription2:Rx.Subscription;
+        _subscription:Rx.Subscription;
 
         constructor(props) {
             super(props);
-            const state = cloneState(ownModel.getState());
-            state._ = theirModel.getState();
-            this.state = state; // cannot use spread operator at the moment due to TS issue
-            this._handleOwnModelChange = this._handleOwnModelChange.bind(this);
-            this._handleTheirModelChange = this._handleTheirModelChange.bind(this);
+            this.state = model.getState();
+            this._handleStoreChange = this._handleStoreChange.bind(this);
         }
 
         componentDidMount() {
-            this._subscription1 = ownModel.addListener(this._handleOwnModelChange);
-            this._subscription2 = theirModel.addListener(this._handleTheirModelChange);
+            this._subscription = model.addListener(this._handleStoreChange);
         }
 
         componentWillUnmount() {
-            this._subscription1.unsubscribe();
-            this._subscription2.unsubscribe();
+            this._subscription.unsubscribe();
         }
 
-        _handleOwnModelChange(state:U):void {
-            const newState = cloneState(state);
-            newState._ = cloneState(this.state._);
+        _handleStoreChange(state:S) {
             this.setState(state);
         }
 
-        _handleTheirModelChange(state:T):void {
-            const newState = cloneState(this.state);
-            newState._ = state;
-            this.setState(newState);
-        }
-
         render() {
-            return React.createElement(wrapped, this.state);
+            return React.createElement(wrapped, {...this.state, ...this.props} as any);
         }
     }
 }
