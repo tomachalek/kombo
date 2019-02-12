@@ -11,7 +11,7 @@ module.exports = {
     output: {
         filename: '[name].js',
         path: mkDistpath(''),
-        libraryTarget: 'umd',
+        libraryTarget: 'commonjs2',
         library: 'kombo'
     },
     module: {
