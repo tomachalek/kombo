@@ -57,6 +57,11 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     private wakeFn:((action:Action)=>boolean)|null;
 
     /**
+     * A debugging callback for watching action arrival and match process.
+     */
+    private _onActionMatch:(state:T, action:Action, isMatch:boolean)=>void;
+
+    /**
      * In case you don't want to implement your custom reduce function, it is expected
      * that you fill in some mapping to the actionMatch attribute:
      *
@@ -83,7 +88,20 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * provide any advantages.
      */
     reduce(state:T, action:Action):T {
-        return action.name in this.actionMatch ? this.actionMatch[action.name](state, action) : state;
+        const match = this.actionMatch[action.name];
+        if (!!this._onActionMatch) {
+            this._onActionMatch(state, action, !!match);
+        }
+        return !!match ? match(state, action) : state;
+    }
+
+    /**
+     * When relying on default reduce implementation,
+     * it is harder to debug action matching process.
+     * This function makes such debugging easier.
+     */
+    DEBUG_onActionMatch(fn:(state:T, action:Action, isMatch:boolean)=>void) {
+        this._onActionMatch = fn;
     }
 
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void {}
