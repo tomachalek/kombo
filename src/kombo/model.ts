@@ -77,6 +77,12 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerModel(this, initialState);
+        this.state$.subscribe(
+            undefined,
+            (err) => {
+                console.error(err)
+            }
+        );
         this.wakeFn = null;
         this.actionMatch = {};
     }
