@@ -130,8 +130,14 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     wakeUp(action:Action):void {
-        if (typeof this.wakeFn === 'function' && this.wakeFn(action)) {
-            this.wakeFn = null;
+        if (typeof this.wakeFn === 'function') {
+            const ans = this.wakeFn(action);
+            if (typeof ans !== 'boolean') {
+                console.warn('Please make sure you explicitly return either true or false from the wakeUp function.');
+            }
+            if (ans) {
+                this.wakeFn = null;
+            }
         }
     }
 
