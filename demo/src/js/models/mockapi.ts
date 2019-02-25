@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as Rx from '@reactivex/rxjs';
+import {Observable} from 'rxjs';
 
 export interface ServerTask {
     id:number;
@@ -39,8 +39,8 @@ export class ServerAPI {
         return `${this.randomVerb()} ${this.randomObject()}`;
     }
 
-    fetchData():Rx.Observable<Array<ServerTask>> {
-        return Rx.Observable.create(observer => {
+    fetchData():Observable<Array<ServerTask>> {
+        return Observable.create(observer => {
             window.setTimeout(
                 () => {
                     const ans:Array<ServerTask> = [];

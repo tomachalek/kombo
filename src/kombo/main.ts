@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import * as Rx from '@reactivex/rxjs';
+import {Subscription, Subject, Observable, Scheduler, BehaviorSubject} from 'rxjs';
 import { StatefulModel, IActionCapturer } from './model';
 
 
@@ -41,7 +40,7 @@ export interface IEventListener<T> {
 
 
 export interface IEventEmitter<T={}> {
-    addListener(callback:(state?:T)=>void):Rx.Subscription;
+    addListener(callback:(state?:T)=>void):Subscription;
     emitChange():void;
 }
 
@@ -75,20 +74,20 @@ export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}
  */
 export class ActionDispatcher {
 
-    private inAction$:Rx.Subject<Action|Rx.Observable<Action>>;
+    private inAction$:Subject<Action|Observable<Action>>;
 
-    private action$:Rx.Observable<AnyAction<{}>>;
+    private action$:Observable<AnyAction<{}>>;
 
-    private inAsync$:Rx.Subject<Action>;
+    private inAsync$:Subject<Action>;
 
     private capturedActions:{[actionName:string]:IActionCapturer};
 
-    private capturedActions$:Rx.Observable<Action<{}>>;
+    private capturedActions$:Observable<Action<{}>>;
 
     constructor() {
         this.capturedActions = {};
-        this.inAction$ = new Rx.Subject<AnyAction<{}>>();
-        const flattened$ = this.inAction$.flatMap(v => v instanceof Rx.Observable ? v : Rx.Observable.of(v));
+        this.inAction$ = new Subject<AnyAction<{}>>();
+        const flattened$ = this.inAction$.flatMap(v => v instanceof Observable ? v : Observable.of(v));
         this.action$ = flattened$
             .filter(v => !(v.name in this.capturedActions))
             .share();
@@ -96,7 +95,7 @@ export class ActionDispatcher {
             .filter(action => action.name in this.capturedActions && this.capturedActions[action.name](action))
             .share();
 
-        this.inAsync$ = new Rx.Subject<Action>().observeOn(Rx.Scheduler.async) as Rx.Subject<Action>;
+        this.inAsync$ = new Subject<Action>().observeOn(Scheduler.async) as Subject<Action>;
         this.inAsync$.subscribe(action => {
             this.dispatch({
                 isSideEffect:true,
@@ -117,16 +116,16 @@ export class ActionDispatcher {
         }
     }
 
-    dispatch<T extends Action|Rx.Observable<Action>>(action:T):void {
+    dispatch<T extends Action|Observable<Action>>(action:T):void {
         this.inAction$.next(action);
     }
 
-    registerStatefulModel<T>(model:StatefulModel<T>):Rx.Subscription {
+    registerStatefulModel<T>(model:StatefulModel<T>):Subscription {
         return this.action$.subscribe(model.onAction.bind(model));
     }
 
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):Rx.BehaviorSubject<T> {
-        const state$ = new Rx.BehaviorSubject(initialState);
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T> {
+        const state$ = new BehaviorSubject(initialState);
         const actions$ = this.action$.merge(this.capturedActions$);
         actions$
             .startWith(null)
