@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import {Subscription} from 'rxjs';
 import * as React from 'react';
-import * as Rx from '@reactivex/rxjs';
-import {IModel, cloneState} from './model';
+import {IModel} from './model';
 
 /**
  * Bound is a component wrapper mapping a state handled by a IModel
@@ -29,7 +28,7 @@ export const Bound = <T extends object>(wrapped:React.ComponentClass<T>, model:I
 
     return class BoundComponent extends React.Component<{}, T> {
 
-        _subscription:Rx.Subscription;
+        _subscription:Subscription;
 
         constructor(props) {
             super(props);
@@ -68,7 +67,7 @@ export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>, model:
 
     return class BoundComponent extends React.Component<P, S> {
 
-        _subscription:Rx.Subscription;
+        _subscription:Subscription;
 
         constructor(props) {
             super(props);

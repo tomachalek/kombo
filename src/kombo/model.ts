@@ -15,8 +15,7 @@
  */
 
 /// <reference path="../compat.d.ts" />
-
-import * as Rx from '@reactivex/rxjs';
+import {Subject, Subscription, BehaviorSubject} from 'rxjs';
 import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel, IReducer} from './main';
 
 
@@ -30,7 +29,7 @@ export interface IActionCapturer {
  */
 export interface IModel<T> {
 
-    addListener(fn:IEventListener<T>):Rx.Subscription;
+    addListener(fn:IEventListener<T>):Subscription;
 
     /**
      * For initial state fetching.
@@ -52,7 +51,7 @@ export interface IModel<T> {
  */
 export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
 
-    private state$:Rx.BehaviorSubject<T>;
+    private state$:BehaviorSubject<T>;
 
     private wakeFn:((action:Action)=>boolean)|null;
 
@@ -114,11 +113,11 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
 
     /**
      * Adds model listener. This is typically called in React's componentDidMount.
-     * Please note that there is no removeListener. The function returns an Rx.Subscription
+     * Please note that there is no removeListener. The function returns an Subscription
      * instance you may store and when component is unmounting you can just call
      * .unsubscribe.
      */
-    addListener(fn:IEventListener<T>):Rx.Subscription {
+    addListener(fn:IEventListener<T>):Subscription {
         return this.state$.subscribe({
             next: fn,
             error: (err) => console.error(err)
@@ -185,7 +184,7 @@ export const cloneState = <T extends object>(state:Readonly<T>|T):T => {
  */
 export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
-    private change$:Rx.Subject<T>;
+    private change$:Subject<T>;
 
     private dispatcher:ActionDispatcher;
 
@@ -193,12 +192,12 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     constructor(dispatcher:ActionDispatcher, initialState:T) {
         this.state = initialState;
-        this.change$ = new Rx.BehaviorSubject<T>(initialState);
+        this.change$ = new BehaviorSubject<T>(initialState);
         this.dispatcher = dispatcher;
         this.dispatcher.registerStatefulModel(this);
     }
 
-    addListener(fn:IEventListener<T>):Rx.Subscription {
+    addListener(fn:IEventListener<T>):Subscription {
         return this.change$.subscribe(fn);
     }
 

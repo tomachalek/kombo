@@ -33,7 +33,7 @@ module.exports = {
         }
     },
     externals: [
-        '@reactivex/rxjs',
+        'rxjs',
         'react'
     ],
     optimization: {
