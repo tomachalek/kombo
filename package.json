@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.22.8",
+  "version": "0.30.0",
   "description": "A simple base for client-side application based on React & Rx.JS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/tomachalek/kombo#readme",
   "dependencies": {
-    "rxjs": "^5.5.12",
+    "rxjs": "^6.4.0",
     "@types/react": "^16.7.13",
     "@types/react-dom": "^16.0.11",
     "immutable": "^3.8.2",

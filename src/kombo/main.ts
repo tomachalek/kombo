@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Subscription} from 'rxjs/Subscription';
-import {Subject} from 'rxjs/Subject';
-import {Observable} from 'rxjs/Observable';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-import {Scheduler} from 'rxjs/Scheduler';
-import {async} from 'rxjs/scheduler/async';
+import {Subscription, Subject, Observable, BehaviorSubject, of as rxOf, asyncScheduler} from 'rxjs';
 import {flatMap, share, observeOn, filter, merge, startWith, scan} from 'rxjs/operators';
 import { StatefulModel, IActionCapturer } from './model';
-import 'rxjs/add/observable/of';
 
 
 export interface Action<T extends {[key:string]:any}={}> {
@@ -95,7 +89,7 @@ export class ActionDispatcher {
         this.capturedActions = {};
         this.inAction$ = new Subject<AnyAction<{}>>();
         const flattened$ = this.inAction$.pipe(
-            flatMap(v => v instanceof Observable ? v : Observable.of(v))
+            flatMap(v => v instanceof Observable ? v : rxOf(v))
         );
         this.action$ = flattened$.pipe(
             filter((v:Action<{}>) => !(v.name in this.capturedActions)),
@@ -107,7 +101,7 @@ export class ActionDispatcher {
         );
 
         this.inAsync$ = new Subject<Action>().pipe(
-            observeOn(async)) as Subject<Action>;
+            observeOn(asyncScheduler)) as Subject<Action>;
         this.inAsync$.subscribe(action => {
             this.dispatch({
                 isSideEffect:true,

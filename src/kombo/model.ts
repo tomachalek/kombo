@@ -15,9 +15,7 @@
  */
 
 /// <reference path="../compat.d.ts" />
-import {Subject} from 'rxjs/Subject';
-import {Subscription} from 'rxjs/Subscription';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {Subject, Subscription, BehaviorSubject} from 'rxjs';
 import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel, IReducer} from './main';
 
 
