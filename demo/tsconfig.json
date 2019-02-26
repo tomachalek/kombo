@@ -5,6 +5,7 @@
         "noImplicitAny": false,
         "module": "commonjs",
         "target": "es5",
+        "lib": ["es5", "dom", "es2015.iterable"],
         "jsx": "react"
     },
     "paths": {
