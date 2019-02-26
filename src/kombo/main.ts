@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Subscription, Subject, Observable, Scheduler, BehaviorSubject} from 'rxjs';
+import {Subscription} from 'rxjs/Subscription';
+import {Subject} from 'rxjs/Subject';
+import {Observable} from 'rxjs/Observable';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import {Scheduler} from 'rxjs/Scheduler';
+import {async} from 'rxjs/scheduler/async';
+import {flatMap, share, observeOn, filter, merge, startWith, scan} from 'rxjs/operators';
 import { StatefulModel, IActionCapturer } from './model';
+import 'rxjs/add/observable/of';
 
 
 export interface Action<T extends {[key:string]:any}={}> {
@@ -87,15 +94,20 @@ export class ActionDispatcher {
     constructor() {
         this.capturedActions = {};
         this.inAction$ = new Subject<AnyAction<{}>>();
-        const flattened$ = this.inAction$.flatMap(v => v instanceof Observable ? v : Observable.of(v));
-        this.action$ = flattened$
-            .filter(v => !(v.name in this.capturedActions))
-            .share();
-        this.capturedActions$ = flattened$
-            .filter(action => action.name in this.capturedActions && this.capturedActions[action.name](action))
-            .share();
+        const flattened$ = this.inAction$.pipe(
+            flatMap(v => v instanceof Observable ? v : Observable.of(v))
+        );
+        this.action$ = flattened$.pipe(
+            filter((v:Action<{}>) => !(v.name in this.capturedActions)),
+            share()
+        );
+        this.capturedActions$ = flattened$.pipe(
+            filter(action => action.name in this.capturedActions && this.capturedActions[action.name](action)),
+            share()
+        );
 
-        this.inAsync$ = new Subject<Action>().observeOn(Scheduler.async) as Subject<Action>;
+        this.inAsync$ = new Subject<Action>().pipe(
+            observeOn(async)) as Subject<Action>;
         this.inAsync$.subscribe(action => {
             this.dispatch({
                 isSideEffect:true,
@@ -126,11 +138,11 @@ export class ActionDispatcher {
 
     registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T> {
         const state$ = new BehaviorSubject(initialState);
-        const actions$ = this.action$.merge(this.capturedActions$);
-        actions$
-            .startWith(null)
-            .scan(
-                <U>(state:T, action:Action<U>) => {
+        this.action$.pipe(
+            merge(this.capturedActions$),
+            startWith(null),
+            scan(
+                (state:T, action:Action<{}>) => {
                     if (action !== null) {
                         model.wakeUp(action);
                         if (model.isActive()) {
@@ -149,7 +161,7 @@ export class ActionDispatcher {
                 },
                 initialState
             )
-            .subscribe(state$);
+        ).subscribe(state$);
         return state$;
     }
 }

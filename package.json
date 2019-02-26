@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.22.6",
+  "version": "0.22.7",
   "description": "A simple base for client-side application based on React & Rx.JS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -39,7 +39,7 @@
     "less-loader": "^4.1.0",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.1",
-    "typescript": "^3.2.2",
+    "typescript": "^3.3.3333",
     "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",

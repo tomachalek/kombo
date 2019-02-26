@@ -33,10 +33,10 @@ module.exports = {
         }
     },
     externals: [
-        'rxjs',
+        /rxjs\/.+/,
         'react'
     ],
     optimization: {
-        minimize: false
+        minimize: true
       }
 };
