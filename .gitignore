@@ -1,2 +1,4 @@
 node_modules
 dist
+dist-es6
+dist-umd

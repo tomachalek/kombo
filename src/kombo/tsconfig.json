@@ -1,9 +1,8 @@
 {
   "compilerOptions": {
     "rootDir": ".",
-    "module": "commonjs",
-    "target": "es5",
-    "lib": ["es5", "dom", "es2015.iterable"],
+    "module": "esnext",
+    "target": "esnext",
     "outDir": "../../dist",
     "declaration": true,
     "declarationDir": "../..",

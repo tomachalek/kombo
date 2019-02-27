@@ -1,49 +1,57 @@
 {
   "name": "kombo",
-  "version": "0.30.1",
-  "description": "A simple base for client-side application based on React & Rx.JS",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "version": "0.40.0",
+  "author": {
+    "name": "Tomas Machalek"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/tomachalek/kombo.git"
-  },
-  "keywords": [
-    "react",
-    "rxjs",
-    "web",
-    "flux"
-  ],
-  "author": "Tomas Machalek",
-  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/tomachalek/kombo/issues"
   },
-  "homepage": "https://github.com/tomachalek/kombo#readme",
   "dependencies": {
-    "rxjs": "^6.4.0",
     "@types/react": "^16.7.13",
     "@types/react-dom": "^16.0.11",
     "immutable": "^3.8.2",
     "react": "^16.6.3",
-    "react-dom": "^16.6.3"
+    "react-dom": "^16.6.3",
+    "rxjs": "^6.4.0"
   },
+  "description": "A simple base for client-side application based on React & Rx.JS",
   "devDependencies": {
     "css-loader": "^1.0.1",
     "extract-text-webpack-plugin": "4.0.0-beta.0",
     "file-loader": "^2.0.0",
     "less": "^3.9.0",
     "less-loader": "^4.1.0",
+    "rollup": "^1.3.1",
+    "rollup-plugin-uglify": "^6.0.2",
+    "rollup-plugin-typescript2": "^0.19.3",
+    "rollup-plugin-alias": "^1.5.1",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.1",
     "typescript": "^3.3.3333",
     "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10",
+    "webpack-dev-server": "^3.2.1",
     "webpack-merge": "^4.1.4"
+  },
+  "homepage": "https://github.com/tomachalek/kombo#readme",
+  "keywords": [
+    "react",
+    "rxjs",
+    "web",
+    "flux"
+  ],
+  "license": "Apache-2.0",
+  "main": "dist/index.js",
+  "module": "dist-es6/index.js",
+  "browser": "dist-umd/kombo.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tomachalek/kombo.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }

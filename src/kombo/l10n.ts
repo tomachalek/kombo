@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-/// <reference path="../vendor.d.ts" />
-import IntlMessageFormat = require('vendor/intl-messageformat');
+import IntlMessageFormat from '../vendor/intl-messageformat';
 
 
 export type TranslationTable = {[key:string]:string};
