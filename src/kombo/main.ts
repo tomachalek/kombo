@@ -99,6 +99,7 @@ export class ActionDispatcher {
             filter(action => action.name in this.capturedActions && this.capturedActions[action.name](action)),
             share()
         );
+
         this.inAsync$ = new Subject<Action>().pipe(
             observeOn(asyncScheduler)) as Subject<Action>;
         this.inAsync$.subscribe(action => {

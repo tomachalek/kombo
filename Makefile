@@ -1,9 +1,10 @@
 all : library demo
-.PHONY: library demo clean
-library :
-	nodejs node_modules/webpack/bin/webpack.js --mode production --config webpack.lib.js
+library : clean lib
+.PHONY: lib library demo clean
+lib :
+	nodejs node_modules/rollup/bin/rollup --c rollup.config.js
 demo :
 	nodejs node_modules/webpack/bin/webpack.js --mode development --config webpack.dev.js
-
 clean :
-	rm -rf ./dist/*
+	rm -rf ./dist/* ./dist-es6/* ./dist-umd/*
+

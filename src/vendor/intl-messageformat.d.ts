@@ -16,14 +16,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-declare module "vendor/intl-messageformat" {
+class IntlMessageFormat {
 
-    class IntlMessageFormat {
+    constructor(translations:any, locale:string);
 
-        constructor(translations:any, locale:string);
-
-        format(values:{[k:string]:string}):string;
-    }
-
-    export = IntlMessageFormat;
+    format(values:{[k:string]:string}):string;
 }
+
+export default IntlMessageFormat;

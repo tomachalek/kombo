@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/// <reference path="../compat.d.ts" />
 import {Subject, Subscription, BehaviorSubject} from 'rxjs';
 import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel, IReducer} from './main';
 
@@ -159,8 +158,8 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
  * @param state
  */
 export const cloneState = <T extends object>(state:Readonly<T>|T):T => {
-    if (Object.assign) {
-        return <T>Object.assign({}, state);
+    if (typeof Object['assign'] === 'function') {
+        return <T>Object['assign']({}, state);
 
     } else {
         const ans:{[key:string]:any} = {};
