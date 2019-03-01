@@ -15,7 +15,7 @@
  */
 
 import {Subject, Subscription, BehaviorSubject} from 'rxjs';
-import {IEventEmitter, Action, ActionDispatcher, IEventListener, SEDispatcher, IStatelessModel, IReducer} from './main';
+import {IEventEmitter, Action, IActionDispatcher, IEventListener, SEDispatcher, IStatelessModel, IReducer} from './main';
 
 
 export interface IActionCapturer {
@@ -73,7 +73,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      */
     protected actionMatch:{[actionName:string]:IReducer<T, Action>};
 
-    constructor(dispatcher:ActionDispatcher, initialState:T) {
+    constructor(dispatcher:IActionDispatcher, initialState:T) {
         this.state$ = dispatcher.registerModel(this, initialState);
         this.state$.subscribe(
             undefined,
@@ -185,11 +185,11 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     private change$:Subject<T>;
 
-    private dispatcher:ActionDispatcher;
+    private dispatcher:IActionDispatcher;
 
     protected state:T;
 
-    constructor(dispatcher:ActionDispatcher, initialState:T) {
+    constructor(dispatcher:IActionDispatcher, initialState:T) {
         this.state = initialState;
         this.change$ = new BehaviorSubject<T>(initialState);
         this.dispatcher = dispatcher;
