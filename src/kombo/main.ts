@@ -70,10 +70,20 @@ export namespace ActionHelper {
 export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}> {
     return !!action.isSideEffect;
 };
+
 /**
  *
  */
-export class ActionDispatcher {
+export interface IActionDispatcher {
+    dispatch<T extends Action|Observable<Action>>(action:T):void;
+    registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T>;
+}
+
+/**
+ *
+ */
+export class ActionDispatcher implements IActionDispatcher {
 
     private inAction$:Subject<Action|Observable<Action>>;
 
