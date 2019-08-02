@@ -17,7 +17,7 @@
 import * as React from 'react';
 
 import {TodoState, TodoModel} from '../models/todo';
-import {Bound, ViewUtils, ActionDispatcher} from 'kombo';
+import {BoundWithProps, ViewUtils, ActionDispatcher} from 'kombo';
 import { ActionNames, Actions } from '../models/actions';
 
 
@@ -69,51 +69,35 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
     // ------------------- <ActIcon /> --------------------------------
 
-    class ActIcon extends React.Component<{
+    const ActIcon:React.SFC<{
         id:number;
         complete:boolean;
-    },
-    {
-        isActive:boolean;
-    }> {
+    }> = (props) => {
 
-        constructor(props) {
-            super(props);
-            this.state = {isActive: false};
-            this.handleMouseover = this.handleMouseover.bind(this);
-            this.handleMouseout = this.handleMouseout.bind(this);
-            this.handleClick = this.handleClick.bind(this);
-        }
+        const [isActive, setActive] = React.useState(false);
 
-        handleClick() {
-            if (this.state.isActive) {
+        const handleClick = () => {
+            if (isActive) {
                 dispatcher.dispatch<Actions.DeleteTodo>({
                     name: ActionNames.DeleteTodo,
-                    payload: {id: this.props.id}
+                    payload: {id: props.id}
                 });
             }
+        };
+
+        const handleMouseover = () => {
+            setActive(true);
+        };
+
+        const handleMouseout = () => {
+            setActive(false);
         }
 
-        handleMouseover() {
-            this.setState({isActive: true});
-        }
+        const getIcon = () => props.complete ? '\u263A' : '\u00a0';
 
-        handleMouseout() {
-            this.setState({isActive: false});
-        }
-
-        private getIcon():string {
-            if (this.props.complete) {
-                return '\u263A';
-            }
-            return '\u00a0';
-        }
-
-        render() {
-            return <a className={`act-icon${this.props.complete ? ' done' : ''}`}
-                        onClick={this.handleClick} onMouseOver={this.handleMouseover}
-                        onMouseOut={this.handleMouseout}>{this.state.isActive ? '\u274C' : this.getIcon()}</a>;
-        }
+        return <a className={`act-icon${props.complete ? ' done' : ''}`}
+                    onClick={handleClick} onMouseOver={handleMouseover}
+                    onMouseOut={handleMouseout}>{isActive ? '\u274C' : getIcon()}</a>;
     };
 
     // ------------------- <TodoRow /> --------------------------------
@@ -173,29 +157,24 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
 
     // ------------------- <TodoTable /> --------------------------------
 
-    class TodoTable extends React.PureComponent<TodoState> {
+    const TodoTable:React.SFC<{version:string} & TodoState> = (props) => {
 
-        constructor(props) {
-            super(props);
-        }
-
-        render() {
-            return (
-                <div className="TodoTable">
-                    <dl>
-                        {this.props.items.map((item, i) => <TodoRow key={`id:${item.id}`} idx={i} {...item} />)}
-                    </dl>
-                    <p className="controls">
-                        <span><AddTodoButton /></span>
-                        <span><GenerateTasks isBusy={this.props.isBusy} /></span>
-                    </p>
-                </div>
-            );
-        }
-    }
+        return (
+            <div className="TodoTable">
+                <dl>
+                    {props.items.map((item, i) => <TodoRow key={`id:${item.id}`} idx={i} {...item} />)}
+                </dl>
+                <p className="controls">
+                    <span><AddTodoButton /></span>
+                    <span><GenerateTasks isBusy={props.isBusy} /></span>
+                </p>
+                (version: {props.version})
+            </div>
+        );
+    };
 
     return {
-        TodoTable: Bound<TodoState>(TodoTable, model)
+        TodoTable: BoundWithProps<{version:string}, TodoState>(TodoTable, model)
     };
 
 }

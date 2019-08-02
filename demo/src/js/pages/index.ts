@@ -50,7 +50,7 @@ class IndexPage {
         });
         const component = viewInit(dispatcher, viewUtils, model);
         ReactDOM.render(
-            React.createElement(component.TodoTable),
+            React.createElement(component.TodoTable, {version: '2019-08-02'}),
             document.getElementById('root-mount')
         );
     }
