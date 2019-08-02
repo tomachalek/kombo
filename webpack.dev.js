@@ -1,10 +1,4 @@
-const webpack = require('webpack');
 const path = require('path');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
-
-const extractLess = new ExtractTextPlugin({
-    filename: '[name].css'
-});
 
 const mkpath = (p) => path.resolve(__dirname, 'demo/src/js', p);
 const mkDistpath = (p) => path.resolve(__dirname, 'demo/dist', p);
@@ -33,11 +27,24 @@ module.exports = {
         rules: [
             {
                 test: /\.css$/,
-                use: extractLess.extract(['css-loader'])
+                use: [
+                    { loader: 'style-loader'},
+                    { loader: 'css-loader' }
+                ]
             },
             {
                 test: /\.less$/,
-                use: extractLess.extract(['css-loader', 'less-loader']),
+                use: [
+                    { loader: 'style-loader'},
+                    { loader: 'css-loader' },
+                    {
+                        loader: 'less-loader',
+                        options: {
+                            strictMath: true,
+                            noIeCompat: true
+                        }
+                    }
+                ]
             },
             {
                 test: /\.(png|jpg|gif|svg)$/,
@@ -64,8 +71,5 @@ module.exports = {
             chunks: 'all',
             name: 'common'
         }
-    },
-    plugins: [
-        extractLess
-    ]
+    }
 };
