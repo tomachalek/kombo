@@ -140,7 +140,7 @@ export class ActionDispatcher implements IActionDispatcher {
      * Normally, when writing an application from scratch registerActionListener should
      * not be needed. But it can serve well when integrating legacy models.
      */
-    registerActionListener<T>(fn:(action:Action)=>void):Subscription {
+    registerActionListener(fn:(action:Action)=>void):Subscription {
         return this.action$.subscribe(fn);
     }
 
