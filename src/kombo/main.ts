@@ -78,6 +78,7 @@ export interface IActionDispatcher {
     dispatch<T extends Action|Observable<Action>>(action:T):void;
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
     registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T>;
+    registerActionListener(fn:(action:Action)=>void):Subscription;
 }
 
 /**
