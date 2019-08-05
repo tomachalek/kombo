@@ -194,6 +194,7 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         this.change$ = new BehaviorSubject<T>(initialState);
         this.dispatcher = dispatcher;
         this.dispatcher.registerStatefulModel(this);
+        this.onAction = this.onAction.bind(this);
     }
 
     addListener(fn:IEventListener<T>):Subscription {
