@@ -24,7 +24,7 @@ import {IModel} from './model';
  * @param wrapped a React component state T will be mapped to
  * @param model a stateless model triggering state change
  */
-export const Bound = <T extends object>(wrapped:React.ComponentClass<T>|React.SFC<T>, model:IModel<T>) => {
+export const Bound = <T extends object>(wrapped:React.ComponentClass<T>|React.SFC<T>, model:IModel<T>):React.ComponentClass<{}, T> => {
 
     return class BoundComponent extends React.Component<{}, T> {
 
@@ -63,7 +63,7 @@ export const Bound = <T extends object>(wrapped:React.ComponentClass<T>|React.SF
  * key conflicts. In case there are conflicting keys, passed props take precedence
  * over models data.
  */
-export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>|React.SFC<P & S>, model:IModel<S>) => {
+export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>|React.SFC<P & S>, model:IModel<S>):React.ComponentClass<P, S> => {
 
     return class BoundComponent extends React.Component<P, S> {
 
