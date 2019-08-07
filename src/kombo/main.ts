@@ -141,8 +141,8 @@ export class ActionDispatcher implements IActionDispatcher {
      * Normally, when writing an application from scratch registerActionListener should
      * not be needed. But it can serve well when integrating legacy models.
      */
-    registerActionListener(fn:(action:Action)=>void):Subscription {
-        return this.action$.subscribe(fn);
+    registerActionListener(fn:(action:Action, dispatch:SEDispatcher)=>void):Subscription {
+        return this.action$.subscribe((a:Action) => fn(a, seAction => this.inAsync$.next(seAction)));
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription {
