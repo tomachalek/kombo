@@ -71,20 +71,38 @@ export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}
     return !!action.isSideEffect;
 };
 
+
 /**
- *
+ * Action queue is an abstract type representing a queue of user and async
+ * actions. I case of Kombo this is handled by ActionDispatcher but this
+ * limited interface prevents programmers from misuse of its full capabilities.
+ */
+export interface IActionQueue {
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T>;
+}
+
+/**
+ * IActionDispatcher is an object React components may dispatch
+ * actions through.
  */
 export interface IActionDispatcher {
     dispatch<T extends Action|Observable<Action>>(action:T):void;
+}
+
+/**
+ * IFullActionControl allows full access to actions - it allows both
+ * registering to incoming actions and dispatching new actions.
+ * It is meant to be used with stateful and legacy models.
+ */
+export interface IFullActionControl extends IActionDispatcher {
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T>;
-    registerActionListener(fn:(action:Action)=>void):Subscription;
+    registerActionListener(fn:(action:Action, dispatch:SEDispatcher)=>void):Subscription;
 }
 
 /**
  *
  */
-export class ActionDispatcher implements IActionDispatcher {
+export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullActionControl {
 
     private inAction$:Subject<Action|Observable<Action>>;
 
@@ -114,6 +132,7 @@ export class ActionDispatcher implements IActionDispatcher {
         this.inAsync$ = new Subject<Action>().pipe(
             observeOn(asyncScheduler)) as Subject<Action>;
         this.inAsync$.subscribe(action => {
+
             this.dispatch({
                 isSideEffect:true,
                 name: action.name,
