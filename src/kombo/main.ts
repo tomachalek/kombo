@@ -102,7 +102,7 @@ export interface IFullActionControl extends IActionDispatcher {
 /**
  *
  */
-export class ActionDispatcher implements IActionDispatcher {
+export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullActionControl {
 
     private inAction$:Subject<Action|Observable<Action>>;
 
