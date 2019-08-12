@@ -29,7 +29,7 @@ export interface ITranslator {
 
     formatDate(d:Date, timeFormat?:number):string;
 
-    formatNumber(v:number, fractionDigits:number):string;
+    formatNumber(v:number, fractionDigits?:number):string;
 }
 
 
