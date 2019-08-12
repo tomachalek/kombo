@@ -14,9 +14,35 @@
  * limitations under the License.
  */
 
-export {Action, SEDispatcher, SideEffectAction, IEventListener, IEventEmitter,
-        IReducer, IActionDispatcher, ActionDispatcher, ActionHelper, IStatelessModel} from './main';
-export {Bound, BoundWithProps} from './components';
-export {ViewUtils, ITranslator} from './l10n';
-export {StatefulModel, StatelessModel, IModel, cloneState, IActionCapturer,} from './model';
-export {URLArgs} from './page';
+export {
+        Action,
+        IActionDispatcher,
+        IActionQueue,
+        IFullActionControl,
+        ActionDispatcher,
+        ActionHelper,
+        SEDispatcher,
+        SideEffectAction,
+        IEventListener,
+        IEventEmitter,
+        IReducer,
+        IStatelessModel
+} from './main';
+export {
+        Bound,
+        BoundWithProps
+} from './components';
+export {
+        ViewUtils,
+        ITranslator
+} from './l10n';
+export {
+        StatefulModel,
+        StatelessModel,
+        IModel,
+        cloneState,
+        IActionCapturer
+} from './model';
+export {
+        URLArgs
+} from './page';
