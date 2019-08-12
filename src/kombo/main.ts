@@ -85,7 +85,7 @@ export interface IActionQueue {
  * IActionDispatcher is an object React components may dispatch
  * actions through.
  */
-export interface IActionDispatcher {
+export interface IActionDispatcher extends IActionQueue {
     dispatch<T extends Action|Observable<Action>>(action:T):void;
 }
 
