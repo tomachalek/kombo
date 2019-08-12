@@ -25,7 +25,7 @@ export type ComponentLib<T> = {[key in keyof T]:T[key]};
 
 export interface ITranslator {
 
-    translate(key:string, args?:{[key:string]:string}):string;
+    translate(key:string, args?:{[key:string]:string|number|boolean}):string;
 
     formatDate(d:Date, timeFormat?:number):string;
 
