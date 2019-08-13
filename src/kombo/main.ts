@@ -78,7 +78,21 @@ export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}
  * limited interface prevents programmers from misuse of its full capabilities.
  */
 export interface IActionQueue {
+
+    /**
+     * Register stateless model to listen for incoming actions
+     */
     registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T>;
+
+    /**
+     * Before an action is triggered, run the 'capturer' function with
+     * the action as a parameter and pass the action to the queue iff
+     * the function returns true.
+     *
+     * Multiple capturers can be defined per action. In such case
+     * all of them must return true to pass the action to the queue.
+     */
+    captureAction(actionName:string, capturer:IActionCapturer):void;
 }
 
 /**
@@ -110,7 +124,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
 
     private inAsync$:Subject<Action>;
 
-    private capturedActions:{[actionName:string]:IActionCapturer};
+    private capturedActions:{[actionName:string]:Array<IActionCapturer>};
 
     private capturedActions$:Observable<Action<{}>>;
 
@@ -125,7 +139,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
             share()
         );
         this.capturedActions$ = flattened$.pipe(
-            filter(action => action.name in this.capturedActions && this.capturedActions[action.name](action)),
+            filter(action => action.name in this.capturedActions && this.capturedActions[action.name].every(fn => fn(action))),
             share()
         );
 
@@ -145,10 +159,10 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
 
     captureAction(actionName:string, capturer:IActionCapturer):void {
         if (actionName in this.capturedActions) {
-            throw new Error(`Action ${actionName} already captured`);
+            this.capturedActions[actionName].push(capturer);
 
         } else {
-            this.capturedActions[actionName] = capturer;
+            this.capturedActions[actionName] = [capturer];
         }
     }
 
