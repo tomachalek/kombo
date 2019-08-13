@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {Subscription, Subject, Observable, BehaviorSubject, of as rxOf, asyncScheduler, isObservable} from 'rxjs';
-import {flatMap, share, observeOn, filter, merge, startWith, scan} from 'rxjs/operators';
+import {flatMap, share, observeOn, filter, startWith, scan} from 'rxjs/operators';
 import { StatefulModel, IActionCapturer } from './model';
 
 
@@ -126,8 +126,6 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
 
     private capturedActions:{[actionName:string]:Array<IActionCapturer>};
 
-    private capturedActions$:Observable<Action<{}>>;
-
     constructor() {
         this.capturedActions = {};
         this.inAction$ = new Subject<AnyAction<{}>>();
@@ -135,11 +133,8 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
             flatMap(v => isObservable(v) ? v : rxOf(v))
         );
         this.action$ = flattened$.pipe(
-            filter((v:Action<{}>) => !(v.name in this.capturedActions)),
-            share()
-        );
-        this.capturedActions$ = flattened$.pipe(
-            filter(action => action.name in this.capturedActions && this.capturedActions[action.name].every(fn => fn(action))),
+            filter((act:Action<{}>) => !(act.name in this.capturedActions)
+                        || this.capturedActions[act.name].every(fn => fn(act))),
             share()
         );
 
@@ -185,7 +180,6 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T> {
         const state$ = new BehaviorSubject(initialState);
         this.action$.pipe(
-            merge(this.capturedActions$),
             startWith(null),
             scan(
                 (state:T, action:Action<{}>) => {
