@@ -1,13 +1,13 @@
 {
   "name": "kombo",
-  "version": "0.51.1",
+  "version": "0.51.2",
   "author": {
     "name": "Tomas Machalek"
   },
   "bugs": {
     "url": "https://github.com/tomachalek/kombo/issues"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@types/react": "^16.8.24",
     "@types/react-dom": "^16.8.5",
     "immutable": "^3.8.2",
