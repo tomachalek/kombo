@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as Immutable from 'immutable';
-
 import {StatelessModel, Action, ActionDispatcher, SEDispatcher} from 'kombo';
 import {ActionNames, Actions} from './actions';
 import { ServerAPI } from './mockapi';
@@ -29,7 +27,7 @@ export interface TodoItem {
 
 
 export interface TodoState {
-    items:Immutable.List<TodoItem>;
+    items:Array<TodoItem>;
     isBusy:boolean;
 }
 
@@ -42,83 +40,90 @@ export class TodoModel extends StatelessModel<TodoState> {
         super(
             dispatcher,
             {
-                items: Immutable.List<TodoItem>(),
+                items: [],
                 isBusy: false
             }
         );
         this.serverApi = serverApi;
-    }
-
-
-    reduce(state:TodoState, action:Action):TodoState {
-        const newState = this.copyState(state);
-        switch (action.name) {
-            case ActionNames.AddTodo:
-                newState.items = newState.items.push({
+        this.addActionHandler(
+            ActionNames.AddTodo,
+            (state, action:Actions.AddTodo) => {
+                state.items = [...state.items, {
                     id: new Date().getTime(),
                     complete: false,
                     text: ''
-                });
-            break;
-            case ActionNames.SetTextTodo: {
-                const srch = newState.items.findIndex(x => x.id === action.payload['id']);
+                }]
+            }
+        );
+        this.addActionHandler(
+            ActionNames.SetTextTodo,
+            (state, action:Actions.SetTextTodo) => {
+                const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
-                    const item = newState.items.get(srch);
-                    newState.items = newState.items.set(srch, {
+                    const item = state.items[srch];
+                    const tmp = [...state.items];
+                    tmp[srch] = {
                         id: item.id,
                         complete: item.complete,
                         text: action.payload['value']
-                    });
+                    };
+                    state.items = tmp;
                 }
             }
-            break;
-            case ActionNames.DeleteTodo: {
-                const srch = newState.items.findIndex(x => x.id === action.payload['id']);
+        );
+        this.addActionHandler(
+            ActionNames.DeleteTodo,
+            (state, action:Actions.DeleteTodo) => {
+                const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
-                    newState.items = newState.items.remove(srch);
+                    state.items = state.items.slice(0, srch).concat(state.items.slice(srch + 1, state.items.length));
                 }
             }
-            break;
-            case ActionNames.ToggleTodo: {
-                const srch = newState.items.findIndex(x => x.id === action.payload['id']);
+        );
+        this.addActionHandler(
+            ActionNames.ToggleTodo,
+            (state, action:Actions.ToggleTodo) => {
+                console.log('action: ', action);
+                const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
-                    const v = newState.items.get(srch);
-                    newState.items = newState.items.set(srch, {
+                    const v = state.items[srch];
+                    const tmp = [...state.items];
+                    tmp[srch] = {
                         id: v.id,
                         text: v.text,
                         complete: !v.complete
-                    });
+                    };
+                    state.items = tmp;
                 }
             }
-            break;
-            case ActionNames.FetchTodos:
-                newState.isBusy = true;
-            break;
-            case ActionNames.FetchTodosDone:
-                newState.isBusy = false;
-                newState.items = newState.items.concat(action.payload['data'].map(v => {
-                    return {
-                        id: v.id,
-                        text: v.text,
-                        complete: false
-                    }
-                })).toList();
-            break;
-        }
-        return newState;
-    }
-
-    sideEffects(state:TodoState, action:Action, dispatch:SEDispatcher):void {
-        switch (action.name) {
-            case ActionNames.FetchTodos:
+        );
+        this.addActionHandler(
+            ActionNames.FetchTodos,
+            (state, action:Actions.ToggleTodo) => {
+                state.isBusy = true;
+            },
+            (state, action, dispatch) => {
                 this.serverApi.fetchData().subscribe(v => {
                     dispatch({
                             name: ActionNames.FetchTodosDone,
                             payload: {data: v}
                     });
                 });
-            break;
-        }
+            }
+        );
+        this.addActionHandler(
+            ActionNames.FetchTodosDone,
+            (state, action:Actions.FetchTodosDone) => {
+                state.isBusy = false;
+                state.items = state.items.concat(action.payload['data'].map(v => {
+                    return {
+                        id: v.id,
+                        text: v.text,
+                        complete: false
+                    }
+                }));
+            }
+        );
     }
 
 }

@@ -52,15 +52,15 @@ and with thousands of users.
 Stateless model does not control when its related state is changed. It only specifies how the state is changed
 in response to different actions.
 
-It is expected that the state is a traditional JS object with (ideally) immutable values. This allows simple
-(shallow) state copying when reducing without fear of strange app behavior. The best way to achieve this is
-to use primitive values (string, number, boolean) combined with immutable structured data types (e.g. Immutable.js).
+It is expected that the state is a traditional JS object with immutable values. To achieve this,
+different solutions can be used. Though it is generally easier to manage native types like Array, Object along
+with immutable operations rather then introducing new data types (e.g. the ones from Immutable.js).
 
 To be able to perform asynchornous API calls, synchronize/notify other models etc., stateless model
-can specify its side effects bound to different actions. These effects are invoked once their respective actions
-reduce the current state (i.e. you can be always sure that all the reduce actions on all models have been already performed -
-so it's quite safe to access other models' state). Side-effect actions are dispatched at will via a provided function
-(see `SEDispatcher` type). In this way it is possible to build chains of asynchronous actions with multiple actions dispatched
+can specify its side effects bound to different actions. Such a side-effect is always invoked *after*
+the model reduced a respective state based on the action. Side-effect actions are dispatched at will
+via a provided function (see `SEDispatcher` type). In this way it is possible to build chains of asynchronous
+actions with multiple actions dispatched
 during different stages of the process.
 
 Actions dispatched via `SEDispatcher` are internally transformed into `SideEffectAction` type which cannot invoke another action
@@ -72,7 +72,7 @@ export interface MyState {
     userId:number;
     firstname:string;
     lastname:string;
-    memberships:Immutable.List<{id:string; type:string}>;
+    memberships:Array<{id:string; type:string}>;
     isBusy:boolean;
 }
 
@@ -85,42 +85,31 @@ export class MyModel extends StatelessModel<MyState> {
                 userId: -1,
                 firstname: '',
                 lastname: '',
-                memberships:Immutable.List<{id:string; type:string}>(),
+                memberships:Array<{id:string; type:string}>(),
                 isBusy: false
             }
         );
-
-         this.actionMatch = {
-            'REGISTER_USER': (state, action) => {
-                const newState = this.copyState(state);
-                newState.isBusy = true;
-                return newState;
+        this.addActionHandler(
+            'REGISTER_USER',
+            (state, action) => { // reducer, 'state' is already a copy
+                state.isBusy = true;
             },
-             'REGISTER_USER_DONE': (state, action:MyTypedAction) => {
-                newState.isBusy = false;
-                newState.userId = action.payload.userId;
-                return newState;
-             }
-         };
-    }
-
-    sideEffects(state:MyState, action:Action, dispatch:SEDispatcher) => {
-        switch (action.type) {
-            case 'REGISTER_USER':
-                // do some (async) stuff
-                // or trigger some other store.
-                // dispatching of a side-effect is
-                // done via a provided function (and
-                // not the dispatcher in costructor)
+            (state, action, dispatch) => { // side-effect of the action (optional)
                 dispatch({
                     type: 'REGISTER_USER_DONE',
                     payload: {userId: someFetchedInfo['userId']};
-                })
-
-            break;
-        }
+                });
+            }
+        );
+        this.addActionHandler(
+            'REGISTER_USER_DONE',
+            (state, action:MyTypedAction) => {
+                newState.isBusy = false;
+                newState.userId = action.payload.userId;
+                return newState;
+            }
+        );
     }
-
 }
 ```
 

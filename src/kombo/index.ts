@@ -26,6 +26,7 @@ export {
         IEventListener,
         IEventEmitter,
         IReducer,
+        INewStateReducer,
         IStatelessModel
 } from './main';
 export {
@@ -40,7 +41,6 @@ export {
         StatefulModel,
         StatelessModel,
         IModel,
-        cloneState,
         IActionCapturer
 } from './model';
 export {
