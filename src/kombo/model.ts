@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import {Subject, Subscription, BehaviorSubject} from 'rxjs';
-import {IEventEmitter, Action, IEventListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl} from './main';
+import { Subject, Subscription, BehaviorSubject } from 'rxjs';
+import { produce } from 'immer';
+import {IEventEmitter, Action, IEventListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer} from './main';
 
 
 export interface IActionCapturer {
@@ -35,6 +36,7 @@ export interface IModel<T> {
      */
     getState():T;
 }
+
 
 /**
  * Stateless model provides a recommended way how to implement
@@ -59,19 +61,9 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      */
     private _onActionMatch:(state:T, action:Action, isMatch:boolean)=>void;
 
-    /**
-     * In case you don't want to implement your custom reduce function, it is expected
-     * that you fill in some mapping to the actionMatch attribute:
-     *
-     * this.actionMatch = {
-     *    'SOME_ACTION_NAME': (state, action:Action) => {
-     *        const newState = this.copyState(state);
-     *        newState.framesSizes = Immutable.List<[number, number]>(action.payload.values);
-     *        return newState;
-     *     }
-     * }
-     */
     protected actionMatch:{[actionName:string]:IReducer<T, Action>};
+
+    protected sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
 
     constructor(dispatcher:IActionQueue, initialState:T) {
         this.state$ = dispatcher.registerModel(this, initialState);
@@ -83,6 +75,16 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         );
         this.wakeFn = null;
         this.actionMatch = {};
+        this.sideEffectMatch = {};
+    }
+
+    /**
+     * When relying on default reduce implementation,
+     * it is harder to debug action matching process.
+     * This function makes such debugging easier.
+     */
+    DEBUG_onActionMatch(fn:(state:T, action:Action, isMatch:boolean)=>void) {
+        this._onActionMatch = fn;
     }
 
     /**
@@ -100,15 +102,37 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * When relying on default reduce implementation,
-     * it is harder to debug action matching process.
-     * This function makes such debugging easier.
+     * Produce side effects for actions. This can be overridden
+     * (and in older versions of Kombo it was the only way how to do
+     * this) but it is easier to just use 'addActionHandler()'.
+     *
+     * @param state
+     * @param action
+     * @param dispatch
      */
-    DEBUG_onActionMatch(fn:(state:T, action:Action, isMatch:boolean)=>void) {
-        this._onActionMatch = fn;
+    sideEffects(state:T, action:Action, dispatch:SEDispatcher):void {
+        const match = this.sideEffectMatch[action.name];
+        if (match !== undefined) {
+            match(state, action, dispatch);
+        }
     }
 
-    sideEffects(state:T, action:Action, dispatch:SEDispatcher):void {}
+    /**
+     * Handle action with provided Immer-wrapped reducer. Optionally handle
+     * Optionally, produce also a side effect for the same action.
+     *
+     * @param actionName
+     * @param reducer
+     * @param seHandler
+     */
+    addActionHandler(actionName:string, reducer:INewStateReducer<T, Action>, seProducer?:ISideEffectHandler<T, Action>):void {
+        // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
+        // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
+        this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
+        if (seProducer !== undefined) {
+            this.sideEffectMatch[actionName] = seProducer;
+        }
+    }
 
     /**
      * Adds model listener. This is typically called in React's componentDidMount.
@@ -147,30 +171,24 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         return this.state$.getValue();
     }
 
+    /**
+     * @deprecated
+     */
     copyState(state:T):T {
-        return cloneState(this.getState());
+        if (typeof Object['assign'] === 'function') {
+            return <T>Object['assign']({}, state);
+
+        } else {
+            const ans:{[key:string]:any} = {};
+            for (let p in state) {
+                if (state.hasOwnProperty(p)) {
+                    ans[p] = state[p];
+                }
+            }
+            return <T>ans;
+        }
     }
 }
-
-
-/**
- *
- * @param state
- */
-export const cloneState = <T extends object>(state:Readonly<T>|T):T => {
-    if (typeof Object['assign'] === 'function') {
-        return <T>Object['assign']({}, state);
-
-    } else {
-        const ans:{[key:string]:any} = {};
-        for (let p in state) {
-            if (state.hasOwnProperty(p)) {
-                ans[p] = state[p];
-            }
-        }
-        return <T>ans;
-    }
-};
 
 
 /**

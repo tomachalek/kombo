@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Subscription, Subject, Observable, BehaviorSubject, of as rxOf, asyncScheduler, isObservable} from 'rxjs';
-import {flatMap, share, observeOn, filter, startWith, scan} from 'rxjs/operators';
+import { Subscription, Subject, Observable, BehaviorSubject, of as rxOf, asyncScheduler, isObservable } from 'rxjs';
+import { flatMap, share, observeOn, filter, startWith, scan } from 'rxjs/operators';
 import { StatefulModel, IActionCapturer } from './model';
 
 
@@ -23,7 +23,6 @@ export interface Action<T extends {[key:string]:any}={}> {
     payload?:T;
     error?:Error;
     isSideEffect?:boolean;
-
 }
 
 
@@ -47,6 +46,18 @@ export interface IEventEmitter<T={}> {
 
 export interface IReducer<T, U extends Action> {
     (state:T, action:U):T;
+}
+
+/**
+ * This reducer provides you with the state copy so
+ * there is no need to copy the state and return it.
+ */
+export interface INewStateReducer<T, U extends Action> {
+    (newState:T, action:U):void;
+}
+
+export interface ISideEffectHandler<T, U extends Action> {
+    (state:T, action:U, seDispatch:SEDispatcher):void;
 }
 
 export interface IStatelessModel<T> {
