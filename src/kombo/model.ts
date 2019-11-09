@@ -16,7 +16,7 @@
 
 import { Subject, Subscription, BehaviorSubject } from 'rxjs';
 import { produce } from 'immer';
-import {IEventEmitter, Action, IEventListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer} from './main';
+import {IEventEmitter, Action, IStateChangeListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer} from './main';
 
 
 export interface IActionCapturer {
@@ -29,7 +29,7 @@ export interface IActionCapturer {
  */
 export interface IModel<T> {
 
-    addListener(fn:IEventListener<T>):Subscription;
+    addListener(fn:IStateChangeListener<T>):Subscription;
 
     /**
      * For initial state fetching.
@@ -52,7 +52,7 @@ export interface IModel<T> {
  */
 export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
 
-    private state$:BehaviorSubject<T>;
+    private readonly state$:BehaviorSubject<T>;
 
     private wakeFn:((action:Action)=>boolean)|null;
 
@@ -61,9 +61,9 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      */
     private _onActionMatch:(state:T, action:Action, isMatch:boolean)=>void;
 
-    protected actionMatch:{[actionName:string]:IReducer<T, Action>};
+    protected readonly actionMatch:{[actionName:string]:IReducer<T, Action>};
 
-    protected sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
+    protected readonly sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
 
     constructor(dispatcher:IActionQueue, initialState:T) {
         this.state$ = dispatcher.registerModel(this, initialState);
@@ -118,7 +118,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * Handle action with provided Immer-wrapped reducer. Optionally handle
+     * Handle action with provided Immer-wrapped reducer.
      * Optionally, produce also a side effect for the same action.
      *
      * @param actionName
@@ -128,9 +128,19 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     addActionHandler(actionName:string, reducer:INewStateReducer<T, Action>, seProducer?:ISideEffectHandler<T, Action>):void {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
-        this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
+        if (this.actionMatch[actionName] === undefined) {
+            this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
+
+        } else {
+            throw new Error(`Reducer for [${actionName}] already defined.`);
+        }
         if (seProducer !== undefined) {
-            this.sideEffectMatch[actionName] = seProducer;
+            if (this.sideEffectMatch[actionName] === undefined) {
+                this.sideEffectMatch[actionName] = seProducer;
+
+            } else {
+                throw new Error(`Side-effect producer for [${actionName}] already defined.`);
+            }
         }
     }
 
@@ -140,7 +150,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * instance you may store and when component is unmounting you can just call
      * .unsubscribe.
      */
-    addListener(fn:IEventListener<T>):Subscription {
+    addListener(fn:IStateChangeListener<T>):Subscription {
         return this.state$.subscribe({
             next: fn,
             error: (err) => console.error(err)
@@ -151,6 +161,12 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         this.wakeFn = wakeFn;
     }
 
+    /**
+     * The method is used by Kombo to wake up suspended
+     * models.
+     *
+     * @param action
+     */
     wakeUp(action:Action):void {
         if (typeof this.wakeFn === 'function') {
             const ans = this.wakeFn(action);
@@ -163,10 +179,21 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         }
     }
 
+    /**
+     * Return true if the model is not suspended at the moment.
+     */
     isActive():boolean {
         return typeof this.wakeFn !== 'function';
     }
 
+    /**
+     * Get current model state. Kombo uses this method
+     * when initializing React components. Please note that
+     * for the application logic there should be no need to
+     * call this method explicitly (e.g. as a way to exchange
+     * data between models). The models should communicate
+     * and synchronize themselves via actions and suspend/wake-up.
+     */
     getState():T {
         return this.state$.getValue();
     }
@@ -214,7 +241,7 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         this.dispatcher.registerStatefulModel(this);
     }
 
-    addListener(fn:IEventListener<T>):Subscription {
+    addListener(fn:IStateChangeListener<T>):Subscription {
         return this.change$.subscribe(fn);
     }
 

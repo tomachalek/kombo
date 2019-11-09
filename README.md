@@ -1,12 +1,20 @@
 # Kombo
 
-(a work in progress project)
-
-Kombo is a small set of classes and types providing state management for [React](https://reactjs.org/)
+Kombo is a simple framework for building rich interactive web applications. It defines a small set
+of classes and types providing state management for [React](https://reactjs.org/)
 applications. Internals are based on [RxJS](http://reactivex.io/) but in most cases, there is no
-need to know anything about reactive streams. Kombo takes some loose inspiration from Flux architecture
-and Redux library. It is used in production in an application containing ~60k lines of TypeScript code
-and with thousands of users.
+need to know much about reactive streams (but it is definitely a good thing to understand them as it
+is a great concept). Kombo takes some loose inspiration from Flux architecture and Redux library.
+It is used in production in applications containing tens thousands of lines of TypeScript
+code and with thousands of users per day. It can be run on both client and server (within a Node.JS
+instance).
+
+See Kombo in action:
+
+1) `git clone https://github.com/tomachalek/kombo.git`
+2) `make demo`
+3) visit `/your/kombo/location/demo/index.html` to see a TodoMVC example
+
 
 ## Contents
 
@@ -22,26 +30,38 @@ and with thousands of users.
 <a name="key_principles"></a>
 ## Key principles
 
+### General
+
 * no boilerplate code (or as few as possible)
    * e.g. no action creators (dispatching directly from React components; do you really need to reuse
      a highly specific state-mapped React component?)
 * no global singleton models (like e.g. stores in many Flux apps)
   * this breaks any awareness of components' dependencies
 * no need to hate OOP - it can be combined with FP in a pragmatic way
+
+### Models
+
 * embrace more traditional "model" as an object which encapsulates a specified subdomain of business logic
   (including API calls etc.)
   * model should know what to do with its related state (no actionCreator/store dilemma)
-  * stateless model transforms state with possible explicitly defined side effects
+  * **stateless model** transforms state with possible explicitly defined side effects
     * side effects may produce actions (i.e. model does this) but that's where the chain ends
-      (i.e. no action loops)
-  * stateful model is inherently impure and can change itself in any way and decide on its own when to notify change listeners
+      (i.e. no action loops),
+  * **stateful model** is inherently impure and can change itself in any way and decide on its own when to notify change listeners
     (similar to classic event emitter from Flux)
 * flexible model/state configuration
   * one model -- one state
   * many models -- one state
-  * many models -- many states (typically each model handles its state here)
-* view components are always wrapped inside a function allowing runtime dependency injection
-  (e.g. translation of messages is based on runtime user language settings)
+  * many models -- many states (typically each model handles its state here),
+* synchronization of models using `suspend()` action where model can suspend itself until a specific
+  action is triggered
+
+### Views
+
+* view components are always wrapped inside a function allowing explicit runtime dependency injection:
+  * models
+  * additional services like message translation
+* React component is bound to a model using simple `Bound`, `BoundWithProps` functions
 
 <a name="structure"></a>
 ## Structure
@@ -128,6 +148,9 @@ model. But if you consider a problem hard to implement that way, Stateful model 
 the React component's view, both Stateless and Stateful components are the same and can be bound to any model
 via the *Bound* wrapper component.
 
+Kombo is designed in a way that stateful models should be needed only in very specific situations. So it
+is definitely recommended not to overuse them.
+
 ```ts
 export class MyStatefulModel extends StatefulModel {
 
@@ -212,24 +235,24 @@ unregister it.
 
  ```ts
  // side effects of model A
- sideEffects(state:TimeDistribModelState, action:Action, dispatch:SEDispatcher):void {
-    switch (action.name) {
-        case 'PERFORM_QUERY':
-            this.suspend((action:Action) => {
-                if (action.name === 'QUERY_VALIDATION_DONE') { /* we wait for model B here */
-                    doSomeAsyncStuff().subscribe(
-                        (data) => {
-                            dispatch({
-                                name: 'MY_POSTPONED_ACTION',
-                                payload: {data: data}
-                            });
-                        }
-                    );
-                }
-            });
-        break;
+ this.addActionHandler(
+    'PERFORM_QUERY',
+    (state, action) => { /* some reducer here */},
+    (state, action, dispatch) => {
+        this.suspend((action:Action) => {
+            if (action.name === 'QUERY_VALIDATION_DONE') { /* we wait for model B here */
+                doSomeAsyncStuff().subscribe(
+                    (data) => {
+                        dispatch({
+                            name: 'MY_POSTPONED_ACTION',
+                            payload: {data: data}
+                        });
+                    }
+                );
+            }
+        });
     }
- }
+ );
 ```
 
 <a name="view_module"></a>
@@ -274,6 +297,10 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
     }
 }
 ```
+
+It is also possible to combine props from the bound model with some by-parent injected ones using
+`BoundWithProps`.
+
 
 <a name="page_initialization"></a>
 ### Page initialization

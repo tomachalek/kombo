@@ -34,16 +34,25 @@ export interface SideEffectAction<T> extends Action<T> {
 export type AnyAction<T> = Action<T> | SideEffectAction<T>;
 
 
-export interface IEventListener<T> {
+/**
+ * This is typically provided by a React component to react
+ * to state changes.
+ */
+export interface IStateChangeListener<T> {
     (state?:T):void;
 }
 
-
+/**
+ * Flux-like (aka "stateful" here) model.
+ */
 export interface IEventEmitter<T={}> {
     addListener(callback:(state?:T)=>void):Subscription;
     emitChange():void;
 }
 
+/**
+ * General state reducer.
+ */
 export interface IReducer<T, U extends Action> {
     (state:T, action:U):T;
 }
@@ -60,6 +69,9 @@ export interface ISideEffectHandler<T, U extends Action> {
     (state:T, action:U, seDispatch:SEDispatcher):void;
 }
 
+/**
+ * Stateless modes as viewed from the framework perspective
+ */
 export interface IStatelessModel<T> {
     reduce:IReducer<T, Action>;
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
@@ -67,17 +79,16 @@ export interface IStatelessModel<T> {
     wakeUp(action:Action):void;
 }
 
+/**
+ * A function to dispatch side effect of an action
+ */
 export interface SEDispatcher {
     <T extends Action>(seAction:T):void;
 }
 
-export namespace ActionHelper {
-
-    export const getPayloadItem = <T>(action:AnyAction<T>, item:string) => {
-        return action.payload ? <T>action.payload[item] : undefined;
-    };
-}
-
+/**
+ * Type guard function for testing whether an action is side-effect
+ */
 export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}> {
     return !!action.isSideEffect;
 };
