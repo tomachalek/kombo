@@ -126,11 +126,11 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * @param reducer
      * @param seHandler
      */
-    addActionHandler<P>(actionName:string, reducer:INewStateReducer<T, Action<P>>, seProducer?:ISideEffectHandler<T, Action<P>>):void {
+    addActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>, seProducer?:ISideEffectHandler<T, A>):void {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
         if (this.actionMatch[actionName] === undefined) {
-            this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action<P>>;
+            this.actionMatch[actionName] = produce(reducer) as IReducer<T, A>;
 
         } else {
             throw new Error(`Reducer for [${actionName}] already defined.`);
