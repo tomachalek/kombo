@@ -118,18 +118,19 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * Handle action with provided Immer-wrapped reducer.
+     * Handle action with provided Immer-wrapped reducer (i.e. no need
+     * to explicitly copy state and returning the state from the handler).
      * Optionally, produce also a side effect for the same action.
      *
      * @param actionName
      * @param reducer
      * @param seHandler
      */
-    addActionHandler(actionName:string, reducer:INewStateReducer<T, Action>, seProducer?:ISideEffectHandler<T, Action>):void {
+    addActionHandler<P>(actionName:string, reducer:INewStateReducer<T, Action<P>>, seProducer?:ISideEffectHandler<T, Action<P>>):void {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
         if (this.actionMatch[actionName] === undefined) {
-            this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
+            this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action<P>>;
 
         } else {
             throw new Error(`Reducer for [${actionName}] already defined.`);
