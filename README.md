@@ -73,8 +73,11 @@ Stateless model does not control when its related state is changed. It only spec
 in response to different actions.
 
 It is expected that the state is a traditional JS object with immutable values. To achieve this,
-different solutions can be used. Though it is generally easier to manage native types like Array, Object along
+different solutions can be used. It is generally easier to manage native types like Array, Object along
 with immutable operations rather then introducing new data types (e.g. the ones from Immutable.js).
+When using `addActionHandler`, Kombo wraps your reducer function in Immer.js `produce` function which
+means you can easily mutate the action because from your perspective you are working on a deep copy
+(which is actually based on much more effective approach called *persistent data structures*).
 
 To be able to perform asynchornous API calls, synchronize/notify other models etc., stateless model
 can specify its side effects bound to different actions. Such a side-effect is always invoked *after*

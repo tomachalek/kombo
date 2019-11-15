@@ -23,6 +23,13 @@ export interface IActionCapturer {
     (action:Action):boolean;
 }
 
+export interface IActionHandlerModifier {
+
+    reduceAlsoOn(...actions:Array<string>):IActionHandlerModifier;
+    sideEffectAlsoOn(...actions:Array<string>):IActionHandlerModifier;
+
+}
+
 /**
  * A general model implementation as viewed from
  * the perspective of a React component.
@@ -127,7 +134,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * @param reducer
      * @param seHandler
      */
-    addActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>, seProducer?:ISideEffectHandler<T, A>):void {
+    addActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
         if (this.actionMatch[actionName] === undefined) {
@@ -143,6 +150,36 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
             } else {
                 throw new Error(`Side-effect producer for [${actionName}] already defined.`);
             }
+        }
+        const modifier = {
+            reduceAlsoOn: (...actions:Array<string>) => {
+                const reducer = this.actionMatch[actionName];
+                if (reducer === undefined) {
+                    throw new Error(`Cannot modify action handler - no reducer for action ${actionName}`);
+                }
+                actions.forEach(a => {
+                    this.actionMatch[a] = reducer;
+                });
+                return modifier;
+            },
+            sideEffectAlsoOn: (...actions:Array<string>) => {
+                const seProducer = this.sideEffectMatch[actionName];
+                if (seProducer === undefined) {
+                    throw new Error(`Cannot modify action handler - no side-effect producer for action ${actionName}`);
+                }
+                actions.forEach(a => {
+                    this.sideEffectMatch[a] = seProducer;
+                })
+                return modifier;
+            }
+        };
+        return modifier;
+    }
+
+    useExistingActionHandler(actionName:string, reduceActions:Array<string>, seProducingActions:Array<string>):void {
+
+        if (seProducingActions.length > 0) {
+
         }
     }
 
