@@ -40,7 +40,8 @@ export {
         StatefulModel,
         StatelessModel,
         IModel,
-        IActionCapturer
+        IActionCapturer,
+        IActionHandlerModifier
 } from './model';
 export {
         URLArgs
