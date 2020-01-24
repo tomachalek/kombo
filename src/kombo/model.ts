@@ -178,11 +178,14 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         return modifier;
     }
 
-    useExistingActionHandler(actionName:string, reduceActions:Array<string>, seProducingActions:Array<string>):void {
-
-        if (seProducingActions.length > 0) {
-
-        }
+    /**
+     * Replaces possible existing action handler.
+     * This can be used e.g. when extending an existing model.
+     */
+    replaceActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+        delete this.actionMatch[actionName];
+        delete this.sideEffectMatch[actionName];
+        return this.addActionHandler(actionName, reducer, seProducer);
     }
 
     /**
