@@ -234,15 +234,25 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      */
     wakeUp(action:Action):void {
         if (typeof this.wakeFn === 'function') {
-            const ans = this.wakeFn(action, this.syncData);
-            if (ans === null) {
-                this.wakeFn = null;
-                this.wakeEvents$.next(action);
-                this.wakeEvents$.complete();
+            try {
+                const ans = this.wakeFn(action, this.syncData);
+                if (action.error) {
+                    this.wakeFn = null;
+                    this.wakeEvents$.error(action.error);
 
-            } else if (ans !== this.syncData) {
-                this.wakeEvents$.next(action);
-                this.syncData = ans;
+                } else if (ans === null) {
+                    this.wakeFn = null;
+                    this.wakeEvents$.next(action);
+                    this.wakeEvents$.complete();
+
+                } else if (ans !== this.syncData) {
+                    this.wakeEvents$.next(action);
+                    this.syncData = ans;
+                }
+
+            } catch (e) {
+                this.wakeFn = null;
+                this.wakeEvents$.error(e);
             }
         }
     }
