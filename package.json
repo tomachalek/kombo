@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.65.0",
+  "version": "0.70.0",
   "author": {
     "name": "Tomas Machalek"
   },
@@ -39,7 +39,9 @@
     "react",
     "rxjs",
     "web",
-    "flux"
+    "flux",
+    "redux",
+    "state management"
   ],
   "license": "Apache-2.0",
   "main": "dist/index.js",

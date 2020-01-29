@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Subject, Subscription, BehaviorSubject } from 'rxjs';
+import { Subject, Subscription, BehaviorSubject, Observable } from 'rxjs';
 import { produce } from 'immer';
 import {IEventEmitter, Action, IStateChangeListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer} from './main';
 
@@ -46,22 +46,24 @@ export interface IModel<T> {
 
 
 /**
- * Stateless model provides a recommended way how to implement
- * application's logic. There is no hardcoded limit how many models
- * and states should be there but some configurations are more
- * suitable for some use-cases then others. Simple applications
- * may prefer single state object while complex ones can be
- * designed in a more decentralized way with several state objects
- * (matching some specific domains) with possible model communication
- * via side-effects handler (.e.g. a model for a "messaging" subsystem
- * may trigger app's "file manager" model to store a message attachment as
- * a side effect).
+ * Stateless model is state-less in a sense that it does not
+ * hold its state T and it also cannot decide when the state
+ * changes. It just provides reducers and side-effects for
+ * dispatched actions.
+ *
+ * Type T represents a state the model handles. Type U (optional)
+ * describes a synchronization value used along with method
+ * 'suspend()'.
  */
-export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
+export abstract class StatelessModel<T extends object, U={}> implements IStatelessModel<T>, IModel<T> {
 
     private readonly state$:BehaviorSubject<T>;
 
-    private wakeFn:((action:Action)=>boolean)|null;
+    private wakeFn:((action:Action, syncData:U)=>U|null)|null;
+
+    private syncData:U;
+
+    private wakeEvents$:Subject<Action>;
 
     /**
      * A debugging callback for watching action arrival and match process.
@@ -201,8 +203,27 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         });
     }
 
-    suspend(wakeFn:(action:Action)=>boolean):void {
+    /**
+     * suspend method pauses the model right after the action currently processed (i.e. the model
+     * does not reduce nor produces any defined side-effects). Each time a subsequent action occurs,
+     * wakeFn is called with the action as the first argument and the current syncData as the second
+     * argument. The wakeFn may return the following:
+     * 1) exactly the same sync. object it recieves (===) => we're not interested in the action at all
+     * 2) changed sync. object => we're interested in the action but we need some more actions to complete
+     * 3) null => we're interested and also this was the last action so wake up (icluding this action - so
+     * the reducer will be applied).
+     *
+     * @param syncData Synchronization data for multiple action waiting; use {} if not interested
+     * @param wakeFn A function called on subsequent actions
+     * @returns an observable of Actions producing only Actions we are interested in
+     * (see (2) and (3) in the description). This allows building observables based on actions
+     * which were occuring during the waiting (sleeping) time.
+     */
+    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         this.wakeFn = wakeFn;
+        this.syncData = syncData;
+        this.wakeEvents$ = new Subject<Action>();
+        return this.wakeEvents$;
     }
 
     /**
@@ -213,12 +234,15 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      */
     wakeUp(action:Action):void {
         if (typeof this.wakeFn === 'function') {
-            const ans = this.wakeFn(action);
-            if (typeof ans !== 'boolean') {
-                console.warn('Please make sure you explicitly return either true or false from the wakeUp function.');
-            }
-            if (ans) {
+            const ans = this.wakeFn(action, this.syncData);
+            if (ans === null) {
                 this.wakeFn = null;
+                this.wakeEvents$.next(action);
+                this.wakeEvents$.complete();
+
+            } else if (ans !== this.syncData) {
+                this.wakeEvents$.next(action);
+                this.syncData = ans;
             }
         }
     }
