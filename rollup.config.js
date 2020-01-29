@@ -1,6 +1,7 @@
 import typescript from 'rollup-plugin-typescript2';
 import alias from 'rollup-plugin-alias';
 import { uglify } from 'rollup-plugin-uglify';
+import resolve from '@rollup/plugin-node-resolve';
 import pkg from './package.json';
 
 export default [
@@ -11,9 +12,10 @@ export default [
 			file: pkg.browser,
 			format: 'umd'
         },
-        external: ['react', 'react-dom', 'rxjs', 'rxjs/operators'],
+        external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
 		plugins: [
 			typescript({
+                typescript: require('typescript'),
                 tsconfig: './src/kombo/tsconfig.json',
                 tsconfigOverride:  {
                     compilerOptions: {
@@ -26,23 +28,26 @@ export default [
             alias({
                 'vendor/intl-messageformat': './../vendor/intl-messageformat'
             }),
-            uglify()
+            uglify(),
+            resolve()
 		]
-	},
+    },
 	{
         input: 'src/kombo/index.ts',
         output: [
 			{ file: pkg.main, format: 'cjs' },
 			{ file: pkg.module, format: 'es' }
 		],
-        external: ['react', 'react-dom', 'rxjs', 'rxjs/operators'],
+        external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
 		plugins: [
 			typescript({
+                typescript: require('typescript'),
                 tsconfig: "./src/kombo/tsconfig.json",
             }),
             alias({
                 'vendor/intl-messageformat': './../vendor/intl-messageformat'
-            })
+            }),
+            resolve()
 		]
     }
 ];
