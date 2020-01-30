@@ -32,11 +32,13 @@ See Kombo in action:
 
 ### General
 
+* side-effect as first-class citizens
+* multiple models
+  * no global singletons (like e.g. stores in many Flux apps), keep awareness of components' dependencies
 * no boilerplate code (or as few as possible)
    * e.g. no action creators (dispatching directly from React components; do you really need to reuse
      a highly specific state-mapped React component?)
-* no global singleton models (like e.g. stores in many Flux apps)
-  * this breaks any awareness of components' dependencies
+  
 * no need to hate OOP - it can be combined with FP in a pragmatic way
 
 ### Models
