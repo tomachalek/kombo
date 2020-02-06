@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { Subject, Subscription, BehaviorSubject, Observable } from 'rxjs';
+import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable } from 'rxjs';
+import { reduce, concatMap } from 'rxjs/operators';
 import { produce } from 'immer';
-import {IEventEmitter, Action, IStateChangeListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer} from './main';
+import { IEventEmitter, Action, IStateChangeListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer } from './main';
 
 
 export interface IActionCapturer {
@@ -223,7 +224,10 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
         this.wakeFn = wakeFn;
         this.syncData = syncData;
         this.wakeEvents$ = new Subject<Action>();
-        return this.wakeEvents$;
+        return this.wakeEvents$.pipe(
+            reduce<Action, Array<Action>>((acc, action) => acc.concat(action)), // this produces kind of synchronization time point
+            concatMap(actions => rxOf(...actions)) // once suspend is done we can pass the values again
+        );
     }
 
     /**
