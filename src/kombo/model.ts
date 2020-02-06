@@ -205,20 +205,28 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     }
 
     /**
-     * suspend method pauses the model right after the action currently processed (i.e. the model
-     * does not reduce nor produces any defined side-effects). Each time a subsequent action occurs,
-     * wakeFn is called with the action as the first argument and the current syncData as the second
-     * argument. The wakeFn may return the following:
-     * 1) exactly the same sync. object it recieves (===) => we're not interested in the action at all
-     * 2) changed sync. object => we're interested in the action but we need some more actions to complete
-     * 3) null => we're interested and also this was the last action so wake up (icluding this action - so
-     * the reducer will be applied).
+     * The suspend() method pauses the model right after the action currently
+     * processed (i.e. the model does not reduce its state based on further
+     * actions nor produces any defined side-effects). Each time a subsequent
+     * action occurs, wakeFn() is called with the action as the first argument
+     * and the current syncData as the second argument. The method returns an
+     * Observable producing actions we filter based on values wakeFn returns:
+     *
+     * 1) exactly the same sync. object it recieves (===) => the model keeps
+     *    being suspended and no action is send via returned stream (see return),
+     * 2) changed sync. object => the model keeps being suspended and the action
+     *    is send via the returned stream,
+     * 3) null => the model wakes up and starts to handle actions and side-effects
+     *    (including this action)
      *
      * @param syncData Synchronization data for multiple action waiting; use {} if not interested
      * @param wakeFn A function called on subsequent actions
      * @returns an observable of Actions producing only Actions we are interested in
-     * (see (2) and (3) in the description). This allows building observables based on actions
-     * which were occuring during the waiting (sleeping) time.
+     * (see (2) and (3) in the description). This allows building observables
+     * based on actions which were occuring during the waiting (sleeping) time.
+     * Please note that the actions in the stream delayed until the object
+     * is woken up again as otherwise it would be possible for a model to dispatch
+     * side-effects to itself while being still suspended.
      */
     suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         this.wakeFn = wakeFn;
@@ -232,7 +240,8 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     /**
      * The method is used by Kombo to wake up suspended
-     * models.
+     * models. For a suspended model, it is called on each action
+     * which occurs from then until the model is woken up again.
      *
      * @param action
      */
@@ -281,7 +290,10 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     }
 
     /**
-     * @deprecated
+     * @deprecated This will be removed in 1.x.x. Please use either
+     * addActionListener() which makes use of Immer.js and frees you
+     * from ensuring immutability manually or use your own immutability
+     * solution.
      */
     copyState(state:T):T {
         if (typeof Object['assign'] === 'function') {
@@ -327,6 +339,10 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         return this.change$.subscribe(fn);
     }
 
+    /**
+     * Signal to the listeners (typically - React components)
+     * that your state has changed.
+     */
     emitChange():void {
         this.change$.next(this.getState());
     }
