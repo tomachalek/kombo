@@ -8,7 +8,12 @@
     "url": "https://github.com/tomachalek/kombo/issues"
   },
   "dependencies": {
-    "immer": "^5.3.4"
+    "@types/react": "^16.9.19",
+    "@types/react-dom": "^16.9.5",
+    "immer": "^5.3.4",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "rxjs": "^6.5.4"
   },
   "peerDependencies": {
     "@types/react": "^16.9.19",
