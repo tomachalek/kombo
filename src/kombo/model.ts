@@ -128,6 +128,32 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
         }
     }
 
+    private createHandlerModifier(actionName:string) {
+        const modifier = {
+            reduceAlsoOn: (...actions:Array<string>) => {
+                const reducer = this.actionMatch[actionName];
+                if (reducer === undefined) {
+                    throw new Error(`Cannot modify action handler - no reducer for action ${actionName}`);
+                }
+                actions.forEach(a => {
+                    this.actionMatch[a] = reducer;
+                });
+                return modifier;
+            },
+            sideEffectAlsoOn: (...actions:Array<string>) => {
+                const seProducer = this.sideEffectMatch[actionName];
+                if (seProducer === undefined) {
+                    throw new Error(`Cannot modify action handler - no side-effect producer for action ${actionName}`);
+                }
+                actions.forEach(a => {
+                    this.sideEffectMatch[a] = seProducer;
+                })
+                return modifier;
+            }
+        };
+        return modifier;
+    }
+
     /**
      * Handle action with provided Immer-wrapped reducer (i.e. no need
      * to explicitly copy state and returning the state from the handler).
@@ -156,39 +182,41 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
                 throw new Error(`Side-effect producer for [${actionName}] already defined.`);
             }
         }
-        const modifier = {
-            reduceAlsoOn: (...actions:Array<string>) => {
-                const reducer = this.actionMatch[actionName];
-                if (reducer === undefined) {
-                    throw new Error(`Cannot modify action handler - no reducer for action ${actionName}`);
-                }
-                actions.forEach(a => {
-                    this.actionMatch[a] = reducer;
-                });
-                return modifier;
-            },
-            sideEffectAlsoOn: (...actions:Array<string>) => {
-                const seProducer = this.sideEffectMatch[actionName];
-                if (seProducer === undefined) {
-                    throw new Error(`Cannot modify action handler - no side-effect producer for action ${actionName}`);
-                }
-                actions.forEach(a => {
-                    this.sideEffectMatch[a] = seProducer;
-                })
-                return modifier;
-            }
-        };
-        return modifier;
+        return this.createHandlerModifier(actionName);
     }
 
     /**
      * Replaces possible existing action handler.
-     * This can be used e.g. when extending an existing model.
+     * This can be used e.g. when overriding an existing model.
      */
     replaceActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         delete this.actionMatch[actionName];
         delete this.sideEffectMatch[actionName];
         return this.addActionHandler(actionName, reducer, seProducer);
+    }
+
+    /**
+     * Extends possible existing action handler - i.e. the already
+     * registered reduce operation will be performed.
+     * This can be used e.g. when extending an existing model.
+     */
+    extendActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+        const currReducer = this.actionMatch[actionName] || ((state:T, action:A) => state);
+        this.actionMatch[actionName] = (state:T, action:A) => {
+            const tmp = currReducer(state, action);
+            if (reducer !== null) {
+                return produce(tmp, (state:T) => reducer(state, action));
+            }
+            return tmp;
+        };
+        const currSEProducer = this.sideEffectMatch[actionName] || ((state:T, action:Action, dispatch:SEDispatcher)=>undefined);
+        this.sideEffectMatch[actionName] = (state:T, action:A, dispatch:SEDispatcher) => {
+            currSEProducer(state, action, dispatch);
+            if (seProducer) {
+                seProducer(state, action, dispatch);
+            }
+        }
+        return this.createHandlerModifier(actionName);
     }
 
     /**
