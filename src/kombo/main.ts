@@ -77,6 +77,17 @@ export interface IStatelessModel<T> {
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
     isActive():boolean;
     wakeUp(action:Action):void;
+
+    /**
+     * In case it is needed to create and dispose models
+     * during an applicaton lifecycle, stateless models must be
+     * unregistered before we can forget about them.
+     * Otherwise, a reference will still exist from within
+     * Kombo action stream.
+     * But in most cases, models should remain instantiated
+     * during the whole application lifecycle.
+     */
+    unregister():void;
 }
 
 /**
@@ -104,7 +115,7 @@ export interface IActionQueue {
     /**
      * Register stateless model to listen for incoming actions
      */
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T>;
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription];
 
     /**
      * Before an action is triggered, run the 'capturer' function with
@@ -199,9 +210,9 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         return this.action$.subscribe(model.onAction.bind(model));
     }
 
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):BehaviorSubject<T> {
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription] {
         const state$ = new BehaviorSubject(initialState);
-        this.action$.pipe(
+        const subscr = this.action$.pipe(
             startWith(null),
             scan(
                 (state:T, action:Action<{}>) => {
@@ -224,6 +235,6 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                 initialState
             )
         ).subscribe(state$);
-        return state$;
+        return [state$, subscr];
     }
 }
