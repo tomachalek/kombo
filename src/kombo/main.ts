@@ -77,17 +77,6 @@ export interface IStatelessModel<T> {
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
     isActive():boolean;
     wakeUp(action:Action):void;
-
-    /**
-     * In case it is needed to create and dispose models
-     * during an applicaton lifecycle, stateless models must be
-     * unregistered before we can forget about them.
-     * Otherwise, a reference will still exist from within
-     * Kombo action stream.
-     * But in most cases, models should remain instantiated
-     * during the whole application lifecycle.
-     */
-    unregister():void;
 }
 
 /**
