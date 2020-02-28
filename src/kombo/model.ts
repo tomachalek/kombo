@@ -43,6 +43,17 @@ export interface IModel<T> {
      * For initial state fetching.
      */
     getState():T;
+
+    /**
+     * In case it is needed to create and dispose models
+     * during an applicaton lifecycle, stateless models must be
+     * unregistered before we can forget about them.
+     * Otherwise, a reference will still exist from within
+     * Kombo action stream.
+     * But in most cases, models should remain instantiated
+     * during the whole application lifecycle.
+     */
+    unregister():void;
 }
 
 
@@ -395,4 +406,12 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
     }
 
     abstract onAction(action:Action):void;
+
+    /**
+     * Stateful model implementation must handle
+     * unregistration process manually. Typically
+     * this operates on the value returned
+     * by StatefulModel#addListener().
+     */
+    abstract unregister():void;
 }
