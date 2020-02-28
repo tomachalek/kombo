@@ -60,6 +60,8 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     private readonly state$:BehaviorSubject<T>;
 
+    private readonly subscription:Subscription;
+
     private wakeFn:((action:Action, syncData:U)=>U|null)|null;
 
     private syncData:U;
@@ -77,7 +79,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     protected readonly sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
 
     constructor(dispatcher:IActionQueue, initialState:T) {
-        this.state$ = dispatcher.registerModel(this, initialState);
+        [this.state$, this.subscription] = dispatcher.registerModel(this, initialState);
         this.state$.subscribe(
             undefined,
             (err) => {
@@ -336,6 +338,10 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
             }
             return <T>ans;
         }
+    }
+
+    unregister():void {
+        this.subscription.unsubscribe();
     }
 }
 
