@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable } from 'rxjs';
-import { reduce, concatMap } from 'rxjs/operators';
+import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, timeout } from 'rxjs';
+import { reduce, concatMap, map } from 'rxjs/operators';
 import { produce } from 'immer';
 import { IEventEmitter, Action, IStateChangeListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer } from './main';
 
@@ -269,14 +269,19 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * is woken up again as otherwise it would be possible for a model to dispatch
      * side-effects to itself while being still suspended.
      */
-    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    suspendWithTimeout(timeoutSecs:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         this.wakeFn = wakeFn;
         this.syncData = syncData;
         this.wakeEvents$ = new Subject<Action>();
         return this.wakeEvents$.pipe(
+            timeoutSecs > 0 ? timeout(timeoutSecs * 1000) : map(v => v),
             reduce<Action, Array<Action>>((acc, action) => acc.concat(action), []), // this produces kind of synchronization time point
             concatMap(actions => rxOf(...actions)) // once suspend is done we can pass the values again
         );
+    }
+
+    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.suspendWithTimeout(0, syncData, wakeFn);
     }
 
     /**
