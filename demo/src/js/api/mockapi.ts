@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 
 export interface ServerTask {
     id:number;
     text:string;
 }
 
-export class ServerAPI {
+export class TaskAPI {
 
     private verbs = ['wash', 'sell', 'buy', 'fix', 'upgrade'];
 
@@ -39,21 +39,42 @@ export class ServerAPI {
         return `${this.randomVerb()} ${this.randomObject()}`;
     }
 
-    fetchData():Observable<Array<ServerTask>> {
+    fetchData():Observable<ServerTask> {
         return Observable.create(observer => {
             window.setTimeout(
                 () => {
                     const ans:Array<ServerTask> = [];
                     let id = new Date().getTime();
-                    for (let i = 0; i < 1; i += 1) {
-                        ans.push({
-                            id: id + i,
-                            text: this.randomTask()
-                        });
-                    }
-                    observer.next(ans);
+                    observer.next({
+                        id: id,
+                        text: this.randomTask()
+                    });
+                    observer.complete();
                 },
                 1500
+            );
+        });
+    }
+}
+
+
+
+export class AdjectivesAPI {
+
+    private adjectives = ['gently', 'crudely', 'slowly', 'dangerously', 'artfully', 'poorly', 'perfectly', 'professionally'];
+
+    private randomAdjective():string {
+        return this.adjectives[Math.round(Math.random() * (this.adjectives.length - 1))];
+    }
+
+    fetchData():Observable<string> {
+        return Observable.create(observer => {
+            window.setTimeout(
+                () => {
+                    observer.next(this.randomAdjective());
+                    observer.complete();
+                },
+                2100
             );
         });
     }

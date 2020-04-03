@@ -15,7 +15,7 @@
  */
 
 import {Action} from 'kombo';
-import { ServerTask } from './mockapi';
+import { ServerTask } from '../api/mockapi';
 
 export enum ActionNames {
     AddTodo = 'ADD_TODO',
@@ -23,7 +23,10 @@ export enum ActionNames {
     DeleteTodo = 'DELETE_TODO',
     ToggleTodo = 'TOGGLE_TODO',
     FetchTodos = 'FETCH_TODOS',
-    FetchTodosDone = 'FETCH_TODOS_DONE'
+    FetchTodosDone = 'FETCH_TODOS_DONE',
+    ToggleAddAdjectives = 'TOGGLE_ADD_ADJECTIVES',
+    FetchAdjectivesDone = 'FETCH_ADJECTIVES_DONE',
+    ToggleAdjectivesHelp = 'TOGGLE_ADJECTIVES_HELP'
 }
 
 export namespace Actions {
@@ -61,8 +64,24 @@ export namespace Actions {
     }
 
     export interface FetchTodosDone extends Action<{
-        data:ServerTask[]
+        data:ServerTask;
     }> {
         name:ActionNames.FetchTodosDone;
+    }
+
+    export interface ToggleAddAdjectives extends Action<{
+    }> {
+        name:ActionNames.ToggleAddAdjectives;
+    }
+
+    export interface FetchAdjectivesDone extends Action<{
+        value:string;
+    }> {
+        name:ActionNames.FetchAdjectivesDone;
+    }
+
+    export interface ToggleAdjectivesHelp extends Action<{
+    }> {
+        name:ActionNames.ToggleAdjectivesHelp;
     }
 }
