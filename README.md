@@ -126,9 +126,9 @@ export class MyModel extends StatelessModel<MyState> {
                 });
             }
         );
-        this.addActionHandler(
+        this.addActionHandler<MyTypedAction>(
             'REGISTER_USER_DONE',
-            (state, action:MyTypedAction) => {
+            (state, action) => {
                 newState.isBusy = false;
                 newState.userId = action.payload.userId;
                 return newState;
