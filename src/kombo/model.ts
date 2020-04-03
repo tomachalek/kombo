@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, timeout } from 'rxjs';
-import { reduce, concatMap, map } from 'rxjs/operators';
+import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, throwError, timer } from 'rxjs';
+import { reduce, concatMap, takeUntil, map } from 'rxjs/operators';
 import { produce } from 'immer';
 import { IEventEmitter, Action, IStateChangeListener, SEDispatcher, IStatelessModel, IReducer, IActionQueue, IFullActionControl, ISideEffectHandler, INewStateReducer } from './main';
 
@@ -64,8 +64,8 @@ export interface IModel<T> {
  * dispatched actions.
  *
  * Type T represents a state the model handles. Type U (optional)
- * describes a synchronization value used along with method
- * 'suspend()'.
+ * describes a synchronization value used along with methods
+ * 'suspend(), suspendWithTimeout()'.
  */
 export abstract class StatelessModel<T extends object, U={}> implements IStatelessModel<T>, IModel<T> {
 
@@ -75,7 +75,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     private wakeFn:((action:Action, syncData:U)=>U|null)|null;
 
-    private syncData:U;
+    private syncData:U|null;
 
     private wakeEvents$:Subject<Action>;
 
@@ -98,6 +98,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
             }
         );
         this.wakeFn = null;
+        this.syncData = null;
         this.actionMatch = {};
         this.sideEffectMatch = {};
     }
@@ -260,6 +261,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * 3) null => the model wakes up and starts to handle actions and side-effects
      *    (including this action)
      *
+     * @param timeout number of milliseconds to wait
      * @param syncData Synchronization data for multiple action waiting; use {} if not interested
      * @param wakeFn A function called on subsequent actions
      * @returns an observable of Actions producing only Actions we are interested in
@@ -269,17 +271,34 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * is woken up again as otherwise it would be possible for a model to dispatch
      * side-effects to itself while being still suspended.
      */
-    suspendWithTimeout(timeoutSecs:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        if (this.wakeFn) {
+            return throwError(new Error('The model is already suspended.'));
+        }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
         this.wakeEvents$ = new Subject<Action>();
         return this.wakeEvents$.pipe(
-            timeoutSecs > 0 ? timeout(timeoutSecs * 1000) : map(v => v),
+            timeout > 0 ?
+                takeUntil(
+                    timer(timeout).pipe(
+                        concatMap(v => throwError(new Error(`Model suspend timeout (${timeout}ms)`)))
+                    )
+                ) :
+                map(v => v),
             reduce<Action, Array<Action>>((acc, action) => acc.concat(action), []), // this produces kind of synchronization time point
             concatMap(actions => rxOf(...actions)) // once suspend is done we can pass the values again
         );
     }
 
+    /**
+     * The method is a variant of suspendWithTimeout() which can be used
+     * in case its sure a waking action will occur. Otherwise the model
+     * will wait indefinitely in the suspended state.
+     *
+     * @param syncData
+     * @param wakeFn
+     */
     suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         return this.suspendWithTimeout(0, syncData, wakeFn);
     }
@@ -292,7 +311,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * @param action
      */
     wakeUp(action:Action):void {
-        if (typeof this.wakeFn === 'function') {
+        if (typeof this.wakeFn === 'function' && this.syncData !== null) {
             try {
                 const ans = this.wakeFn(action, this.syncData);
                 if (action.error) {

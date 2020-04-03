@@ -34,6 +34,11 @@ h1 {
     margin-left: 0.4em;
 }
 
+.TodoTable .controls > * {
+    margin-top: 0.7em;
+    margin-bottom: 0.7em;
+}
+
 .TodoTable .controls span:not(:first-child) {
     margin-left: 0.7em;
 }
@@ -53,4 +58,30 @@ h1 {
 
 .TodoTable dd .act-icon.done {
     color: green;
+}
+
+.TodoTable div.error {
+    color: red;
+    background-color: #eeeeee;
+}
+
+.AddAdjectivesCheckbox input {
+    margin-left: 0.4em;
+}
+
+.AdjLoader h2 {
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+    font-size: 1.3em;
+}
+
+.AdjLoader a.help {
+    cursor: pointer;
+    color: #abcdef;
+}
+
+.AdjLoader p.help {
+    font-size: 0.9em;
+    border: 1px solid #dddddd;
+    padding: 0.7em;
 }

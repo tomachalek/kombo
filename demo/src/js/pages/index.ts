@@ -17,10 +17,12 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import {ActionDispatcher, ViewUtils} from 'kombo';
-import {init as viewInit} from '../views/todomvc';
-import {TodoModel} from '../models/todo';
-import { ServerAPI } from '../models/mockapi';
+import { ActionDispatcher, ViewUtils} from 'kombo';
+import { init as viewInit} from '../views/todomvc';
+import { TodoModel } from '../models/todo';
+import { AdjectivesModel } from '../models/adjectives';
+
+import { TaskAPI, AdjectivesAPI } from '../api/mockapi';
 
 declare var require:any;
 require('../../css/style.css');
@@ -42,15 +44,34 @@ class IndexPage {
 
     init():void {
         const dispatcher = new ActionDispatcher();
-        const api = new ServerAPI();
-        const model = new TodoModel(dispatcher, api);
+        const taskApi = new TaskAPI();
+        const todoModel = new TodoModel(
+            dispatcher,
+            taskApi,
+            {
+                error: null,
+                items: [],
+                isBusy: false,
+                generateAdjectives: false
+            }
+        );
+        const adjectiveApi = new AdjectivesAPI();
+        const adjModel = new AdjectivesModel(
+            dispatcher,
+            adjectiveApi,
+            {
+                isHelpVisible: false,
+                isActive: false,
+                isBusy: false
+            }
+        );
         const viewUtils = new ViewUtils<{}>({
             uiLang: 'en_US',
             translations: this.translations
         });
-        const component = viewInit(dispatcher, viewUtils, model);
+        const component = viewInit(dispatcher, viewUtils, todoModel, adjModel);
         ReactDOM.render(
-            React.createElement(component.TodoTable, {version: '2019-08-02'}),
+            React.createElement(component.TodoWidget, {version: '2020-04-03'}),
             document.getElementById('root-mount')
         );
     }

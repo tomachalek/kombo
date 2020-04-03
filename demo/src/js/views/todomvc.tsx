@@ -17,11 +17,12 @@
 import * as React from 'react';
 
 import {TodoState, TodoModel} from '../models/todo';
-import {BoundWithProps, ViewUtils, ActionDispatcher} from 'kombo';
+import {BoundWithProps, Bound, ViewUtils, ActionDispatcher} from 'kombo';
 import { ActionNames, Actions } from '../models/actions';
+import { AdjectivesModel, AdjectivesModelState } from '../models/adjectives';
 
 
-export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoModel) {
+export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:TodoModel, adjModel:AdjectivesModel) {
 
 
     // ------------------- <TodoText /> --------------------------------
@@ -155,26 +156,102 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, model:TodoMo
         }
     }
 
+    // ------------------- <AddAdjectivesCheckbox /> --------------------
+
+    const AddAdjectivesCheckbox:React.SFC<{
+        active:boolean;
+    }> = (props) => {
+
+        const handleChange = () => {
+            dispatcher.dispatch<Actions.ToggleAddAdjectives>({
+                name: ActionNames.ToggleAddAdjectives
+            })
+        };
+
+        return (
+            <label className="AddAdjectivesCheckbox">Attach adjectives from a server
+                <input type="checkbox" checked={props.active} onChange={handleChange} />
+            </label>
+        )
+    }
+
     // ------------------- <TodoTable /> --------------------------------
 
     const TodoTable:React.SFC<{version:string} & TodoState> = (props) => {
 
         return (
             <div className="TodoTable">
+                {props.error ?
+                    <div className="error">{props.error}</div> :
+                    null
+                }
                 <dl>
                     {props.items.map((item, i) => <TodoRow key={`id:${item.id}`} idx={i} {...item} />)}
                 </dl>
-                <p className="controls">
-                    <span><AddTodoButton /></span>
-                    <span><GenerateTasks isBusy={props.isBusy} /></span>
-                </p>
-                (version: {props.version})
+                <section className="controls">
+                    <div><AddAdjectivesCheckbox active={props.generateAdjectives} /></div>
+                    <div>
+                        <span><AddTodoButton /></span>
+                        <span><GenerateTasks isBusy={props.isBusy} /></span>
+                    </div>
+                </section>
             </div>
         );
     };
 
+    const BoundTodoTable = BoundWithProps<{version:string}, TodoState>(TodoTable, todoModel);
+
+
+    // --------------- <AdjLoader /> -----------------------
+
+    const AdjLoader:React.SFC<AdjectivesModelState> = (props) => {
+
+        const handleClick = () => {
+            dispatcher.dispatch<Actions.ToggleAdjectivesHelp>({
+                name: ActionNames.ToggleAdjectivesHelp,
+            });
+        };
+
+        return (
+            <div className="AdjLoader">
+                {props.isActive ?
+                    <>
+                        <div>
+                            <strong>Adjective server</strong><sup><a className="help" onClick={handleClick}>[?]</a></sup>:{'\u00a0'}
+                            {props.isBusy ? <img src="./img/ajax-loader.gif" /> : <span>idle</span>}
+                            {props.isHelpVisible ?
+                                <p className="help">
+                                    Adjective server is a fake async. service demonstrating dependence between
+                                    two asynchronous model actions. When generating a ticket, both <code>TodoModel</code>
+                                    and <code>AdjectivesModel</code> react to the same action. To make them react
+                                    in the right order and also pass some needed data between them, the <code>TodoModel</code>
+                                    will suspend and waits for an actions triggered by <code>AdjectiveModel</code>.
+                                </p> :
+                                null
+                            }
+                        </div>
+
+                    </> : null
+                }
+            </div>
+        );
+    };
+
+    const BoundAdjLoader = Bound<AdjectivesModelState>(AdjLoader, adjModel);
+
+    // ---------------------- <TodoWidget /> -----------------------------
+
+    const TodoWidget:React.SFC<{version:string}> = (props) => (
+        <div>
+            <BoundTodoTable version={props.version} />
+            <BoundAdjLoader />
+            <div></div>
+        </div>
+    );
+
+
     return {
-        TodoTable: BoundWithProps<{version:string}, TodoState>(TodoTable, model)
+        TodoWidget: TodoWidget
     };
 
 }

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-import {StatelessModel, Action, ActionDispatcher, SEDispatcher} from 'kombo';
-import {ActionNames, Actions} from './actions';
-import { ServerAPI } from './mockapi';
+import { StatelessModel, ActionDispatcher } from 'kombo';
+import { of as rxOf } from 'rxjs';
+import { concatMap, map } from 'rxjs/operators';
+
+import { ActionNames, Actions } from './actions';
+import { TaskAPI, ServerTask } from '../api/mockapi';
 
 
 export interface TodoItem {
@@ -27,6 +30,8 @@ export interface TodoItem {
 
 
 export interface TodoState {
+    error:string|null;
+    generateAdjectives:boolean;
     items:Array<TodoItem>;
     isBusy:boolean;
 }
@@ -34,20 +39,14 @@ export interface TodoState {
 
 export class TodoModel extends StatelessModel<TodoState> {
 
-    private serverApi:ServerAPI;
+    private serverApi:TaskAPI;
 
-    constructor(dispatcher:ActionDispatcher, serverApi:ServerAPI) {
-        super(
-            dispatcher,
-            {
-                items: [],
-                isBusy: false
-            }
-        );
+    constructor(dispatcher:ActionDispatcher, serverApi:TaskAPI, initState:TodoState) {
+        super(dispatcher, initState);
         this.serverApi = serverApi;
-        this.addActionHandler(
+        this.addActionHandler<Actions.AddTodo>(
             ActionNames.AddTodo,
-            (state, action:Actions.AddTodo) => {
+            (state, action) => {
                 state.items = [...state.items, {
                     id: new Date().getTime(),
                     complete: false,
@@ -55,9 +54,9 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }]
             }
         );
-        this.addActionHandler(
+        this.addActionHandler<Actions.SetTextTodo>(
             ActionNames.SetTextTodo,
-            (state, action:Actions.SetTextTodo) => {
+            (state, action) => {
                 const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
                     const item = state.items[srch];
@@ -71,19 +70,18 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
         );
-        this.addActionHandler(
+        this.addActionHandler<Actions.DeleteTodo>(
             ActionNames.DeleteTodo,
-            (state, action:Actions.DeleteTodo) => {
+            (state, action) => {
                 const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
                     state.items = state.items.slice(0, srch).concat(state.items.slice(srch + 1, state.items.length));
                 }
             }
         );
-        this.addActionHandler(
+        this.addActionHandler<Actions.ToggleTodo>(
             ActionNames.ToggleTodo,
-            (state, action:Actions.ToggleTodo) => {
-                console.log('action: ', action);
+            (state, action) => {
                 const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
                     const v = state.items[srch];
@@ -97,31 +95,71 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
         );
-        this.addActionHandler(
+        this.addActionHandler<Actions.ToggleTodo>(
             ActionNames.FetchTodos,
-            (state, action:Actions.ToggleTodo) => {
+            (state, action) => {
                 state.isBusy = true;
             },
             (state, action, dispatch) => {
-                this.serverApi.fetchData().subscribe(v => {
-                    dispatch({
+                (state.generateAdjectives ?
+                    this.suspendWithTimeout(2500, {}, (action, syncData) => {
+                        if (action.name === ActionNames.FetchAdjectivesDone) {
+                            return null;
+                        }
+                        return syncData;
+
+                    }).pipe(
+                        concatMap(
+                            a => this.serverApi.fetchData().pipe(
+                                concatMap(resp => rxOf<[string, ServerTask]>([
+                                    a.payload['value'], resp]))
+                            )
+                        ),
+                        map(
+                            ([adj, resp]) => ({
+                                id: resp.id,
+                                text: `${adj} ${resp.text}`
+                            })
+                        )
+                    ) :
+                    this.serverApi.fetchData()
+
+                ).subscribe(
+                    v => {
+                        dispatch<Actions.FetchTodosDone>({
                             name: ActionNames.FetchTodosDone,
                             payload: {data: v}
-                    });
-                });
+                        });
+                    },
+                    err => {
+                        dispatch<Actions.FetchTodosDone>({
+                            name: ActionNames.FetchTodosDone,
+                            error: err
+                        });
+                    }
+                )
             }
         );
-        this.addActionHandler(
+        this.addActionHandler<Actions.FetchTodosDone>(
             ActionNames.FetchTodosDone,
-            (state, action:Actions.FetchTodosDone) => {
+            (state, action) => {
                 state.isBusy = false;
-                state.items = state.items.concat(action.payload['data'].map(v => {
-                    return {
-                        id: v.id,
-                        text: v.text,
+                if (action.error) {
+                    state.error = `ERROR: ${action.error}`;
+
+                } else {
+                    state.items.push({
+                        id: action.payload.data.id,
+                        text: action.payload.data.text,
                         complete: false
-                    }
-                }));
+                    });
+                }
+            }
+        );
+        this.addActionHandler<Actions.ToggleAddAdjectives>(
+            ActionNames.ToggleAddAdjectives,
+            (state, action) => {
+                state.generateAdjectives = !state.generateAdjectives;
             }
         );
     }
