@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.74.1",
+  "version": "0.74.2",
   "author": {
     "name": "Tomas Machalek"
   },
@@ -8,12 +8,7 @@
     "url": "https://github.com/tomachalek/kombo/issues"
   },
   "dependencies": {
-    "@types/react": "^16.9.32",
-    "@types/react-dom": "^16.9.6",
-    "immer": "^5.3.4",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
-    "rxjs": "^6.5.5"
+    "immer": "^5.3.4"
   },
   "peerDependencies": {
     "@types/react": "^16.9.32",
