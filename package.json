@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.74.2",
+  "version": "0.75.0",
   "author": {
     "name": "Tomas Machalek"
   },
@@ -8,7 +8,12 @@
     "url": "https://github.com/tomachalek/kombo/issues"
   },
   "dependencies": {
-    "immer": "^5.3.4"
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
+    "immer": "^5.3.4",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "rxjs": "^6.5.5"
   },
   "peerDependencies": {
     "@types/react": "^16.9.32",
@@ -35,7 +40,7 @@
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.3",
+    "webpack-dev-server": "^3.11.0",
     "webpack-merge": "^4.2.2"
   },
   "homepage": "https://github.com/tomachalek/kombo#readme",

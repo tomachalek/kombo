@@ -11,7 +11,8 @@
     "strictNullChecks": true
   },
   "files": [
-    "components.ts",
+    "components/index.ts",
+    "components/util.ts",
     "l10n.ts",
     "main.ts",
     "model.ts",
