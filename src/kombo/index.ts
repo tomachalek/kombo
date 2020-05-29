@@ -28,14 +28,20 @@ export {
         INewStateReducer,
         IStatelessModel
 } from './main';
+
 export {
         Bound,
         BoundWithProps
 } from './components';
+
 export {
-        ViewUtils,
         ITranslator
 } from './l10n';
+
+export {
+        ViewUtils
+} from './components/util';
+
 export {
         StatefulModel,
         StatelessModel,
@@ -43,6 +49,7 @@ export {
         IActionCapturer,
         IActionHandlerModifier
 } from './model';
+
 export {
         URLArgs
 } from './page';
