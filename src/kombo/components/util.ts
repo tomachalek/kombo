@@ -102,7 +102,7 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
         return format.format(v);
     }
 
-    translate(key:string, args?:{[key:string]:string}):string {
+    translate(key:string, args?:{[key:string]:string|number|boolean}):string {
         if (key) {
             const tmp = this.currTranslation[key];
             if (tmp) {
