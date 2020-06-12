@@ -32,7 +32,7 @@ export const Bound = <T extends object>(wrapped:React.ComponentClass<T>|React.SF
 
         constructor(props) {
             super(props);
-            this.state = model.getState();
+            this.state = model.getInitialState();
             this._handleStoreChange = this._handleStoreChange.bind(this);
         }
 
@@ -58,10 +58,10 @@ export const Bound = <T extends object>(wrapped:React.ComponentClass<T>|React.SF
 /**
  * While Bound() creates a completely isolated component connected only with its
  * attached model, BoundWithProps() allows you to pass also properties to the
- * bound component. Please note that both model state and passed props are mixed
- * into props of an inner component with means you have to manage possible
- * key conflicts. In case there are conflicting keys, passed props take precedence
- * over models data.
+ * bound component. Please note that both model state and passed props are merged
+ * into a single "props" object which means that object key conflicts may occur
+ * between model state and component props. In case there are conflicting keys,
+ * passed props take precedence over model data.
  */
 export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>|React.SFC<P & S>, model:IModel<S>):React.ComponentClass<P, S> => {
 
@@ -71,7 +71,7 @@ export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>|React.S
 
         constructor(props) {
             super(props);
-            this.state = model.getState();
+            this.state = model.getInitialState();
             this._handleStoreChange = this._handleStoreChange.bind(this);
         }
 
