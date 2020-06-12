@@ -42,7 +42,7 @@ export interface IModel<T> {
     /**
      * For initial state fetching.
      */
-    getState():T;
+    getInitialState():T;
 
     /**
      * In case it is needed to create and dispose models
@@ -79,6 +79,8 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     private wakeEvents$:Subject<Action>;
 
+    private readonly initialState:T;
+
     /**
      * A debugging callback for watching action arrival and match process.
      */
@@ -90,6 +92,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     protected readonly sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
 
     constructor(dispatcher:IActionQueue, initialState:T) {
+        this.initialState = initialState;
         [this.state$, this.subscription] = dispatcher.registerModel(this, initialState);
         this.state$.subscribe(
             undefined,
@@ -350,7 +353,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * data between models). The models should communicate
      * and synchronize themselves via actions and suspend/wake-up.
      */
-    getState():T {
+    getInitialState():T {
         return this.state$.getValue();
     }
 
@@ -395,11 +398,14 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     private dispatcher:IFullActionControl;
 
+    private readonly initialState:T;
+
     protected state:T;
 
     constructor(dispatcher:IFullActionControl, initialState:T) {
-        this.state = initialState;
-        this.change$ = new BehaviorSubject<T>(initialState);
+        this.initialState = initialState;
+        this.state = this.initialState;
+        this.change$ = new BehaviorSubject<T>(this.state);
         this.dispatcher = dispatcher;
         this.dispatcher.registerStatefulModel(this);
     }
@@ -413,11 +419,15 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
      * that your state has changed.
      */
     emitChange():void {
-        this.change$.next(this.getState());
+        this.change$.next(this.state);
     }
 
     getState():T {
         return this.state;
+    }
+
+    getInitialState():T {
+        return this.initialState;
     }
 
     synchronize(action:Action):void {
