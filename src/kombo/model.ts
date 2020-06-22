@@ -454,13 +454,15 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         this.state = produce(this.state, prod);
     }
 
-    addActionHandler<A extends Action>(actionName:string, handler:(action:A)=>void):void {
-        if (this.actionMatch[actionName] === undefined) {
-            this.actionMatch[actionName] = handler;
+    addActionHandler<A extends Action>(actionName:string|Array<string>, handler:(action:A)=>void):void {
+        (Array.isArray(actionName) ? actionName : [actionName]).forEach(name => {
+            if (this.actionMatch[name] === undefined) {
+                this.actionMatch[name] = handler;
 
-        } else {
-            throw new Error(`Action handler for [${actionName}] already defined.`);
-        }
+            } else {
+                throw new Error(`Action handler for [${actionName}] already defined.`);
+            }
+        });
     }
 
     onAction(action:Action):void {
