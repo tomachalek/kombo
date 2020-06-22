@@ -439,6 +439,13 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         });
     }
 
+    /**
+     * Change the current state the Immer way
+     */
+    changeState(prod:(draftState:T)=>void) {
+        this.state = produce(this.state, prod);
+    }
+
     abstract onAction(action:Action):void;
 
     /**
