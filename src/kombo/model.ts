@@ -402,12 +402,29 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     protected state:T;
 
+    private actionMatch:{[actionName:string]:(action:Action)=>void};
+
+    /**
+     * A debugging callback for watching action arrival and match process.
+     */
+    private _onActionMatch:(action:Action, isMatch:boolean)=>void;
+
     constructor(dispatcher:IFullActionControl, initialState:T) {
         this.initialState = initialState;
         this.state = this.initialState;
         this.change$ = new BehaviorSubject<T>(this.state);
         this.dispatcher = dispatcher;
         this.dispatcher.registerStatefulModel(this);
+        this.actionMatch = {};
+    }
+
+    /**
+     * When relying on default action handling implementation,
+     * it is harder to debug action matching process.
+     * This function makes such debugging easier.
+     */
+    DEBUG_onActionMatch(fn:(action:Action, isMatch:boolean)=>void) {
+        this._onActionMatch = fn;
     }
 
     addListener(fn:IStateChangeListener<T>):Subscription {
@@ -430,15 +447,6 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         return this.initialState;
     }
 
-    synchronize(action:Action):void {
-        this.dispatcher.dispatch({
-            isSideEffect:true,
-            name: action.name,
-            payload: action.payload,
-            error: action.error
-        });
-    }
-
     /**
      * Change the current state the Immer way
      */
@@ -446,7 +454,24 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         this.state = produce(this.state, prod);
     }
 
-    abstract onAction(action:Action):void;
+    addActionHandler<A extends Action>(actionName:string, handler:(action:A)=>void):void {
+        if (this.actionMatch[actionName] === undefined) {
+            this.actionMatch[actionName] = handler;
+
+        } else {
+            throw new Error(`Action handler for [${actionName}] already defined.`);
+        }
+    }
+
+    onAction(action:Action):void {
+        const match = this.actionMatch[action.name];
+        if (!!this._onActionMatch) {
+            this._onActionMatch(action, !!match);
+        }
+        if (!!match) {
+            this.actionMatch[action.name](action);
+        }
+    }
 
     /**
      * Stateful model implementation must handle
