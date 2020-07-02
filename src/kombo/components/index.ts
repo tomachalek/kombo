@@ -32,7 +32,7 @@ export const Bound = <T extends object>(wrapped:React.ComponentClass<T>|React.SF
 
         constructor(props) {
             super(props);
-            this.state = model.getInitialState();
+            this.state = model.getState();
             this._handleStoreChange = this._handleStoreChange.bind(this);
         }
 
@@ -71,7 +71,7 @@ export const BoundWithProps = <P, S>(wrapped:React.ComponentClass<P & S>|React.S
 
         constructor(props) {
             super(props);
-            this.state = model.getInitialState();
+            this.state = model.getState();
             this._handleStoreChange = this._handleStoreChange.bind(this);
         }
 
