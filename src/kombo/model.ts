@@ -40,9 +40,11 @@ export interface IModel<T> {
     addListener(fn:IStateChangeListener<T>):Subscription;
 
     /**
-     * For initial state fetching.
+     * Get actual state (typically to instantiate a bound React component).
+     * This should not be misused e.g. to communicate state
+     * between models (models should communicate only via actions)
      */
-    getInitialState():T;
+    getState():T;
 
     /**
      * In case it is needed to create and dispose models
@@ -79,8 +81,6 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     private wakeEvents$:Subject<Action>;
 
-    private readonly initialState:T;
-
     /**
      * A debugging callback for watching action arrival and match process.
      */
@@ -92,7 +92,6 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     protected readonly sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
 
     constructor(dispatcher:IActionQueue, initialState:T) {
-        this.initialState = initialState;
         [this.state$, this.subscription] = dispatcher.registerModel(this, initialState);
         this.state$.subscribe(
             undefined,
@@ -352,8 +351,12 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * call this method explicitly (e.g. as a way to exchange
      * data between models). The models should communicate
      * and synchronize themselves via actions and suspend/wake-up.
+     *
+     * Note: please note that in some cases, this may produce
+     * initial state even if the actual state has been already
+     * altered. See https://github.com/ReactiveX/rxjs/issues/5105
      */
-    getInitialState():T {
+    getState():T {
         return this.state$.getValue();
     }
 
@@ -398,8 +401,6 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
 
     private dispatcher:IFullActionControl;
 
-    private readonly initialState:T;
-
     protected state:T;
 
     private actionMatch:{[actionName:string]:(action:Action)=>void};
@@ -410,8 +411,7 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
     private _onActionMatch:(action:Action, isMatch:boolean)=>void;
 
     constructor(dispatcher:IFullActionControl, initialState:T) {
-        this.initialState = initialState;
-        this.state = this.initialState;
+        this.state = initialState;
         this.change$ = new BehaviorSubject<T>(this.state);
         this.dispatcher = dispatcher;
         this.dispatcher.registerStatefulModel(this);
@@ -443,15 +443,13 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         return this.state;
     }
 
-    getInitialState():T {
-        return this.initialState;
-    }
-
     /**
      * Change the current state the Immer way
+     * and emit change.
      */
     changeState(prod:(draftState:T)=>void):void {
         this.state = produce(this.state, prod);
+        this.emitChange();
     }
 
     addActionHandler<A extends Action>(actionName:string|Array<string>, handler:(action:A)=>void):void {
