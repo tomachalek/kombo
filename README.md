@@ -238,7 +238,7 @@ unregister it.
 <a name="model_pausing"></a>
  ### Model suspending
 
- Model suspending is a basic synchronization tool for `StatelessModel`.
+ Model suspending is a basic synchronization tool for Kombo models (`StatelessModel`, `StatefulModel`).
 
 Let's say a model (A) has to wait for some other model (B) to perform an action
 (e.g. to load data via AJAX, 'QUERY_VALIDATION_DONE' in the example below) while both models
@@ -257,7 +257,9 @@ react to the same initial action ('PERFORM_QUERY'). it is possible
             if (action.name === 'QUERY_VALIDATION_DONE') { /* we wait for model B here */
                 return null; // by returning no synchronization data we say: "stop waiting"
             }
-            return syncData; // by returning original syncData we say: "not interested in this action"
+            // by returning original syncData we say: "not interested in this action"
+            // (= do not send the action down the stream)
+            return syncData; 
 
         }).pipe(
             concatMap((matchingAction) => doSomeAsyncStuff(matchingAction.payload))
