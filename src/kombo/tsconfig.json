@@ -14,8 +14,11 @@
     "components/index.ts",
     "components/util.ts",
     "l10n.ts",
-    "main.ts",
-    "model.ts",
+    "action/common.ts",
+    "action/index.ts",
+    "model/common.ts",
+    "model/stateful.ts",
+    "model/stateless.ts",
     "page.ts"
    ]
 }

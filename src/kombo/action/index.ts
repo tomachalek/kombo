@@ -13,85 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Subscription, Subject, Observable, BehaviorSubject, of as rxOf, asyncScheduler, isObservable } from 'rxjs';
-import { flatMap, share, observeOn, filter, startWith, scan } from 'rxjs/operators';
-import { StatefulModel, IActionCapturer } from './model';
-
-
-export interface Action<T extends {[key:string]:any}={}> {
-    name:string;
-    payload?:T;
-    error?:Error;
-    isSideEffect?:boolean;
-}
-
-
-export interface SideEffectAction<T> extends Action<T> {
-    isSideEffect:true;
-}
-
-
-export type AnyAction<T> = Action<T> | SideEffectAction<T>;
-
-
-/**
- * This is typically provided by a React component to react
- * to state changes.
- */
-export interface IStateChangeListener<T> {
-    (state?:T):void;
-}
-
-/**
- * Flux-like (aka "stateful" here) model.
- */
-export interface IEventEmitter<T={}> {
-    addListener(callback:(state?:T)=>void):Subscription;
-    emitChange():void;
-}
-
-/**
- * General state reducer.
- */
-export interface IReducer<T, U extends Action> {
-    (state:T, action:U):T;
-}
-
-/**
- * This reducer provides you with the state copy so
- * there is no need to copy the state and return it.
- */
-export interface INewStateReducer<T, U extends Action> {
-    (newState:T, action:U):void;
-}
-
-export interface ISideEffectHandler<T, U extends Action> {
-    (state:T, action:U, seDispatch:SEDispatcher):void;
-}
-
-/**
- * Stateless modes as viewed from the framework perspective
- */
-export interface IStatelessModel<T> {
-    reduce:IReducer<T, Action>;
-    sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
-    isActive():boolean;
-    wakeUp(action:Action):void;
-}
-
-/**
- * A function to dispatch side effect of an action
- */
-export interface SEDispatcher {
-    <T extends Action>(seAction:T):void;
-}
-
-/**
- * Type guard function for testing whether an action is side-effect
- */
-export function isSideEffect(action:AnyAction<{}>):action is SideEffectAction<{}> {
-    return !!action.isSideEffect;
-};
+import { Subscription, Observable, BehaviorSubject, Subject, of as rxOf, asyncScheduler, isObservable  } from 'rxjs';
+import { startWith, scan, flatMap, filter, share, observeOn } from 'rxjs/operators';
+import { IActionCapturer, IStatelessModel } from '../model/common';
+import { Action, SEDispatcher, AnyAction } from './common';
+import { StatefulModel } from '../model/stateful';
 
 
 /**
@@ -104,7 +30,7 @@ export interface IActionQueue {
     /**
      * Register stateless model to listen for incoming actions
      */
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription];
+    registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription];
 
     /**
      * Before an action is triggered, run the 'capturer' function with
@@ -196,10 +122,20 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription {
-        return this.action$.subscribe(model.onAction.bind(model));
+        return this.action$.subscribe(
+            action => {
+                model.wakeUp(action);
+                if (model.isActive()) {
+                    model.onAction(action);
+                }
+            },
+            err => {
+                console.error(err);
+            }
+        );
     }
 
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription] {
+    registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription] {
         const state$ = new BehaviorSubject(initialState);
         const subscr = this.action$.pipe(
             startWith(null),

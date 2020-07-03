@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Subscription} from 'rxjs';
+import { Subscription } from 'rxjs';
 import * as React from 'react';
-import {IModel} from '../model';
+import { IModel } from '../model/common';
 
 /**
  * Bound is a component wrapper mapping a state handled by a IModel
