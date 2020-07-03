@@ -30,7 +30,7 @@ export interface IActionQueue {
     /**
      * Register stateless model to listen for incoming actions
      */
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription];
+    registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription];
 
     /**
      * Before an action is triggered, run the 'capturer' function with
@@ -122,10 +122,20 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription {
-        return this.action$.subscribe(model.onAction.bind(model));
+        return this.action$.subscribe(
+            action => {
+                model.wakeUp(action);
+                if (model.isActive()) {
+                    model.onAction(action);
+                }
+            },
+            err => {
+                console.error(err);
+            }
+        );
     }
 
-    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription] {
+    registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription] {
         const state$ = new BehaviorSubject(initialState);
         const subscr = this.action$.pipe(
             startWith(null),

@@ -31,7 +31,7 @@ import { IActionQueue } from '../action';
  * describes a synchronization value used along with methods
  * 'suspend(), suspendWithTimeout()'.
  */
-export abstract class StatelessModel<T extends object, U={}> implements IStatelessModel<T>, IModel<T> {
+export abstract class StatelessModel<T extends object, U={}> implements IStatelessModel<T, U>, IModel<T> {
 
     private readonly state$:BehaviorSubject<T>;
 
@@ -231,7 +231,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * @returns an observable of Actions producing only Actions we are interested in
      * (see (2) and (3) in the description). This allows building observables
      * based on actions which were occuring during the waiting (sleeping) time.
-     * Please note that the actions in the stream delayed until the object
+     * Please note that the actions in the stream are delayed until the object
      * is woken up again as otherwise it would be possible for a model to dispatch
      * side-effects to itself while being still suspended.
      */

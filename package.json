@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.79.0",
+  "version": "0.80.0",
   "author": {
     "name": "Tomas Machalek"
   },
@@ -8,14 +8,14 @@
     "url": "https://github.com/tomachalek/kombo/issues"
   },
   "dependencies": {
-    "immer": "^7.0.3"
+    "immer": "^7.0.5"
   },
   "peerDependencies": {
-    "@types/react": "^16.9.38",
+    "@types/react": "^16.9.41",
     "@types/react-dom": "^16.9.8",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "rxjs": "^6.5.5"
+    "rxjs": "^6.6.0"
   },
   "description": "A simple base for client-side application based on React & Rx.JS",
   "devDependencies": {

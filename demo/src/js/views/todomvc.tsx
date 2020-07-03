@@ -221,7 +221,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
                             {props.isBusy ? <img src="./img/ajax-loader.gif" /> : <span>idle</span>}
                             {props.isHelpVisible ?
                                 <p className="help">
-                                    Adjective server is a fake async. service demonstrating dependence between
+                                    Adjective server is a fake async. service demonstrating dependency between
                                     two asynchronous model actions. When generating a ticket, both <code>TodoModel</code>
                                     and <code>AdjectivesModel</code> react to the same action. To make them react
                                     in the right order and also pass some needed data between them, the <code>TodoModel</code>

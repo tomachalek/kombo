@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { Subject, Subscription, BehaviorSubject } from 'rxjs';
+import { Subject, Subscription, BehaviorSubject, Observable, throwError, of as rxOf, timer } from 'rxjs';
+import { concatMap, takeUntil, reduce, map } from 'rxjs/operators';
 import { produce } from 'immer';
-import { IModel } from './common';
+import { IModel, ISuspendable } from './common';
 import { IEventEmitter, Action, IStateChangeListener } from '../action/common';
 import { IFullActionControl } from '../action';
 
@@ -29,7 +30,7 @@ import { IFullActionControl } from '../action';
  * via model's getters and prefer using 'Bound' wrapper component with
  * automatic mapping of state to properties.
  */
-export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
+export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>, ISuspendable<U> {
 
     private change$:Subject<T>;
 
@@ -38,6 +39,13 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
     protected state:T;
 
     private actionMatch:{[actionName:string]:(action:Action)=>void};
+
+    private wakeFn:((action:Action, syncData:U)=>U|null)|null;
+
+    private syncData:U|null;
+
+    private wakeEvents$:Subject<Action>;
+
 
     /**
      * A debugging callback for watching action arrival and match process.
@@ -50,6 +58,8 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         this.dispatcher = dispatcher;
         this.dispatcher.registerStatefulModel(this);
         this.actionMatch = {};
+        this.wakeFn = null;
+        this.syncData = null;
     }
 
     /**
@@ -105,6 +115,101 @@ export abstract class StatefulModel<T> implements IEventEmitter, IModel<T> {
         if (!!match) {
             this.actionMatch[action.name](action);
         }
+    }
+
+    /**
+     * The suspend() method pauses the model right after the action currently
+     * processed (i.e. the model does handle further actions). Each time a subsequent
+     * action occurs, wakeFn() is called with the action as the first argument
+     * and the current syncData as the second argument. The method returns an
+     * Observable producing actions we filter based on values wakeFn returns:
+     *
+     * 1) exactly the same sync. object it recieves (===) => the model keeps
+     *    being suspended and no action is send via returned stream (see return),
+     * 2) changed sync. object => the model keeps being suspended and the action
+     *    is send via the returned stream,
+     * 3) null => the model wakes up and starts to handle actions and side-effects
+     *    (including this action)
+     *
+     * @param timeout number of milliseconds to wait
+     * @param syncData Synchronization data for multiple action waiting; use {} if not interested
+     * @param wakeFn A function called on subsequent actions
+     * @returns an observable of Actions producing only Actions we are interested in
+     * (see (2) and (3) in the description). This allows building observables
+     * based on actions which were occuring during the waiting (sleeping) time.
+     * Please note that the actions in the stream are delayed until the object
+     * is woken up again as otherwise it would be possible for a model to dispatch
+     * actions.
+     */
+    suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        if (this.wakeFn) {
+            return throwError(new Error('The model is already suspended.'));
+        }
+        this.wakeFn = wakeFn;
+        this.syncData = syncData;
+        this.wakeEvents$ = new Subject<Action>();
+        return this.wakeEvents$.pipe(
+            timeout > 0 ?
+                takeUntil(
+                    timer(timeout).pipe(
+                        concatMap(v => throwError(new Error(`Model suspend timeout (${timeout}ms)`)))
+                    )
+                ) :
+                map(v => v),
+            reduce<Action, Array<Action>>((acc, action) => acc.concat(action), []), // this produces kind of synchronization time point
+            concatMap(actions => rxOf(...actions)) // once suspend is done we can pass the values again
+        );
+    }
+
+    /**
+     * The method is a variant of suspendWithTimeout() which can be used
+     * in case its sure a waking action will occur. Otherwise the model
+     * will wait indefinitely in the suspended state.
+     *
+     * @param syncData
+     * @param wakeFn
+     */
+    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.suspendWithTimeout(0, syncData, wakeFn);
+    }
+
+    /**
+     * The method is used by Kombo to wake up suspended
+     * models. For a suspended model, it is called on each action
+     * which occurs from then until the model is woken up again.
+     *
+     * @param action
+     */
+    wakeUp(action:Action):void {
+        if (typeof this.wakeFn === 'function' && this.syncData !== null) {
+            try {
+                const ans = this.wakeFn(action, this.syncData);
+                if (action.error) {
+                    this.wakeFn = null;
+                    this.wakeEvents$.error(action.error);
+
+                } else if (ans === null) {
+                    this.wakeFn = null;
+                    this.wakeEvents$.next(action);
+                    this.wakeEvents$.complete();
+
+                } else if (ans !== this.syncData) {
+                    this.wakeEvents$.next(action);
+                    this.syncData = ans;
+                }
+
+            } catch (e) {
+                this.wakeFn = null;
+                this.wakeEvents$.error(e);
+            }
+        }
+    }
+
+    /**
+     * Return true if the model is not suspended at the moment.
+     */
+    isActive():boolean {
+        return typeof this.wakeFn !== 'function';
     }
 
     /**

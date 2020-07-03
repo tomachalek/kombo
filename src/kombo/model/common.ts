@@ -14,20 +14,25 @@
  * limitations under the License.
  */
 
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 import { Action, IStateChangeListener, SEDispatcher, IReducer } from '../action/common';
 
+
+export interface ISuspendable<U> {
+    suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action>;
+    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action>;
+    wakeUp(action:Action):void;
+    isActive():boolean;
+}
 
 /**
  * Stateless modes as viewed from the framework perspective
  */
-export interface IStatelessModel<T> {
+export interface IStatelessModel<T, U> extends ISuspendable<U> {
     reduce:IReducer<T, Action>;
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
     isActive():boolean;
-    wakeUp(action:Action):void;
 }
-
 
 export interface IActionCapturer {
     (action:Action):boolean;

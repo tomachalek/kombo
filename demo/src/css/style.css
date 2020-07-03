@@ -84,4 +84,5 @@ h1 {
     font-size: 0.9em;
     border: 1px solid #dddddd;
     padding: 0.7em;
+    max-width: 30em;
 }
