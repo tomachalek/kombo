@@ -16,18 +16,20 @@
 
 export {
         Action,
-        IActionDispatcher,
-        IActionQueue,
-        IFullActionControl,
-        ActionDispatcher,
         SEDispatcher,
         SideEffectAction,
         IStateChangeListener,
         IEventEmitter,
         IReducer,
-        INewStateReducer,
-        IStatelessModel
-} from './main';
+        INewStateReducer
+} from './action/common';
+
+export {
+        IActionDispatcher,
+        IActionQueue,
+        IFullActionControl,
+        ActionDispatcher
+} from './action/index';
 
 export {
         Bound,
@@ -43,12 +45,15 @@ export {
 } from './components/util';
 
 export {
-        StatefulModel,
-        StatelessModel,
         IModel,
         IActionCapturer,
-        IActionHandlerModifier
-} from './model';
+        IActionHandlerModifier,
+        IStatelessModel
+} from './model/common';
+
+export { StatefulModel } from './model/stateful';
+
+export { StatelessModel } from './model/stateless';
 
 export {
         URLArgs
