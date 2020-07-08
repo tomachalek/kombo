@@ -107,7 +107,7 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
         });
     }
 
-    addMActionSubsetHandler<A extends Action>(actionName:string|Array<string>, match:(action:A)=>boolean, handler:(action:A)=>void):void {
+    addActionSubsetHandler<A extends Action>(actionName:string|Array<string>, match:(action:A)=>boolean, handler:(action:A)=>void):void {
         (Array.isArray(actionName) ? actionName : [actionName]).forEach(name => {
             if (this.actionMatch[name] === undefined) {
                 this.actionMatch[name] = (action:A) => {
