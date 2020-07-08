@@ -164,6 +164,39 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     }
 
     /**
+     * Handle action with provided Immer-wrapped reducer (i.e. no need
+     * to explicitly copy state and returning the state from the handler).
+     * Optionally, produce also a side effect for the same action.
+     * Furthermore - accept only actions matching the provided filter.
+     * This can be used e.g. in case multiple instances of the same
+     * model are running and each model wants to listen to just a subset
+     * of actions.
+     */
+    addActionSubsetHandler<A extends Action>(actionName:string, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+        if (reducer) {
+            if (this.actionMatch[actionName] === undefined) {
+                this.actionMatch[actionName] = (state:T, action:A) => match(action) ? (produce(reducer) as IReducer<T, A>)(state, action) : state;
+
+            } else {
+                throw new Error(`Reducer for [${actionName}] already defined.`);
+            }
+        }
+        if (seProducer) {
+            if (this.sideEffectMatch[actionName] === undefined) {
+                this.sideEffectMatch[actionName] = (state:T, action:A, seDispatch:SEDispatcher) => {
+                    if (match(action)) {
+                        seProducer(state, action, seDispatch)
+                    }
+                };
+
+            } else {
+                throw new Error(`Side-effect producer for [${actionName}] already defined.`);
+            }
+        }
+        return this.createHandlerModifier(actionName);
+    }
+
+    /**
      * Replaces possible existing action handler.
      * This can be used e.g. when overriding an existing model.
      */
