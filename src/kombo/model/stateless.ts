@@ -172,7 +172,8 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * model are running and each model wants to listen to just a subset
      * of actions.
      */
-    addActionSubsetHandler<A extends Action>(actionName:string, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    addActionSubtypeHandler<A extends Action>(actionName:string, match:(action:A)=>boolean,
+            reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         if (reducer) {
             if (this.actionMatch[actionName] === undefined) {
                 this.actionMatch[actionName] = (state:T, action:A) => match(action) ? (produce(reducer) as IReducer<T, A>)(state, action) : state;
