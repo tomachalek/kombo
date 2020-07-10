@@ -16,7 +16,7 @@
 
 import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, throwError, timer } from 'rxjs';
 import { reduce, concatMap, takeUntil, map } from 'rxjs/operators';
-import { produce } from 'immer';
+import { produce, current } from 'immer';
 import { IStatelessModel, IModel, IActionHandlerModifier } from './common';
 import { Action, IReducer, ISideEffectHandler, SEDispatcher, INewStateReducer, IStateChangeListener } from '../action/common';
 import { IActionQueue } from '../action';
@@ -74,6 +74,14 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      */
     DEBUG_onActionMatch(fn:(state:T, action:Action, isMatch:boolean)=>void) {
         this._onActionMatch = fn;
+    }
+
+    /**
+     * Export state using Immer's current().
+     * This is only for debugging purposes.
+     */
+    DEBUG_snapshot<V>(value:V):V {
+        return current(value);
     }
 
     /**
