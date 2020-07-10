@@ -75,8 +75,8 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * Export state using Immer's current().
      * This is only for debugging purposes.
      */
-    DEBUG_state(state:T):T {
-        return current(state);
+    DEBUG_snapshot<V>(value:V):V {
+        return current(value);
     }
 
     addListener(fn:IStateChangeListener<T>):Subscription {

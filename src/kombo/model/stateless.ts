@@ -80,8 +80,8 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * Export state using Immer's current().
      * This is only for debugging purposes.
      */
-    DEBUG_state(state:T):T {
-        return current(state);
+    DEBUG_draft<V>(value:V):V {
+        return current(value);
     }
 
     /**
