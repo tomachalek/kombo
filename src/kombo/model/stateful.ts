@@ -16,7 +16,7 @@
 
 import { Subject, Subscription, BehaviorSubject, Observable, throwError, of as rxOf, timer } from 'rxjs';
 import { concatMap, takeUntil, reduce, map } from 'rxjs/operators';
-import { produce } from 'immer';
+import { produce, current } from 'immer';
 import { IModel, ISuspendable } from './common';
 import { IEventEmitter, Action, IStateChangeListener } from '../action/common';
 import { IFullActionControl } from '../action';
@@ -69,6 +69,14 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      */
     DEBUG_onActionMatch(fn:(action:Action, isMatch:boolean)=>void) {
         this._onActionMatch = fn;
+    }
+
+    /**
+     * Export state using Immer's current().
+     * This is only for debugging purposes.
+     */
+    DEBUG_state(state:T):T {
+        return current(state);
     }
 
     addListener(fn:IStateChangeListener<T>):Subscription {
