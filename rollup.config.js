@@ -1,6 +1,6 @@
 import typescript from 'rollup-plugin-typescript2';
 import alias from 'rollup-plugin-alias';
-import { uglify } from 'rollup-plugin-uglify';
+import { terser } from "rollup-plugin-terser";
 import resolve from '@rollup/plugin-node-resolve';
 import pkg from './package.json';
 
@@ -28,7 +28,7 @@ export default [
             alias({
                 'vendor/intl-messageformat': './../vendor/intl-messageformat'
             }),
-            uglify(),
+            terser(),
             resolve()
 		]
     },
