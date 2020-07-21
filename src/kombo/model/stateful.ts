@@ -38,6 +38,8 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
 
     protected state:T;
 
+    private readonly subscription:Subscription;
+
     private actionMatch:{[actionName:string]:(action:Action)=>void};
 
     private wakeFn:((action:Action, syncData:U)=>U|null)|null;
@@ -56,7 +58,7 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
         this.state = initialState;
         this.change$ = new BehaviorSubject<T>(this.state);
         this.dispatcher = dispatcher;
-        this.dispatcher.registerStatefulModel(this);
+        this.subscription = this.dispatcher.registerStatefulModel(this);
         this.actionMatch = {};
         this.wakeFn = null;
         this.syncData = null;
@@ -236,10 +238,9 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
     }
 
     /**
-     * Stateful model implementation must handle
-     * unregistration process manually. Typically
-     * this operates on the value returned
-     * by StatefulModel#addListener().
+     *
      */
-    abstract unregister():void;
+    unregister():void {
+        this.subscription.unsubscribe();
+    }
 }
