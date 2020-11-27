@@ -102,8 +102,11 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * and emit change.
      */
     changeState(prod:(draftState:T)=>void):void {
-        this.state = produce(this.state, prod);
-        this.emitChange();
+        const oldState = this.state;
+        this.state = produce(oldState, prod);
+        if (this.state !== oldState) {
+            this.emitChange();
+        }
     }
 
     addActionHandler<A extends Action>(actionName:string|Array<string>, handler:(action:A)=>void):void {
