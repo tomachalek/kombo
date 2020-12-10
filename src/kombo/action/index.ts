@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Subscription, Observable, BehaviorSubject, Subject, of as rxOf, asyncScheduler, isObservable  } from 'rxjs';
-import { startWith, scan, flatMap, filter, share, observeOn } from 'rxjs/operators';
+import { startWith, scan, mergeMap, filter, share, observeOn } from 'rxjs/operators';
 import { IActionCapturer, IStatelessModel } from '../model/common';
 import { Action, SEDispatcher, AnyAction } from './common';
 import { StatefulModel } from '../model/stateful';
@@ -59,6 +59,7 @@ export interface IActionDispatcher extends IActionQueue {
 export interface IFullActionControl extends IActionDispatcher {
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
     registerActionListener(fn:(action:Action, dispatch:SEDispatcher)=>void):Subscription;
+    dispatchSideEffect<T extends Action>(action:T):void;
 }
 
 /**
@@ -78,7 +79,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         this.capturedActions = {};
         this.inAction$ = new Subject<AnyAction<{}>>();
         const flattened$ = this.inAction$.pipe(
-            flatMap(v => isObservable(v) ? v : rxOf(v))
+            mergeMap(v => isObservable(v) ? v : rxOf(v))
         );
         this.action$ = flattened$.pipe(
             filter((act:Action<{}>) => !(act.name in this.capturedActions)
@@ -111,6 +112,10 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
 
     dispatch<T extends Action|Observable<Action>>(action:T):void {
         this.inAction$.next(action);
+    }
+
+    dispatchSideEffect<T extends Action>(action:T):void {
+        this.inAsync$.next({...action, isSideEffect: true});
     }
 
     /**

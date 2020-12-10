@@ -146,6 +146,17 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
     }
 
     /**
+     * Dispatches a provided action as side effect. This has
+     * two main implications:
+     * 1) action is dispatched asynchronously
+     * 2) action cannot be further chained with other actions
+     *
+     */
+    dispatchSideEffect<A extends Action>(action:A):void {
+        this.dispatcher.dispatchSideEffect(action);
+    }
+
+    /**
      * The suspend() method pauses the model right after the action currently
      * processed (i.e. the model does handle further actions). Each time a subsequent
      * action occurs, wakeFn() is called with the action as the first argument
@@ -158,6 +169,13 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      *    is send via the returned stream,
      * 3) null => the model wakes up and starts to handle actions and side-effects
      *    (including this action)
+     *
+     * Please note that to properly wake the model, the action it waits for must
+     * be run after the suspend call. In case this is based on user interaction or
+     * some async event (AJAX), everything is OK by default. But in case of model
+     * synchronization (e.g. when other model provides data for the suspended one)
+     * this requires the 'waking' action to be a model side-effect
+     * (see StatefulModel.dispatchSideEffect()).
      *
      * @param timeout number of milliseconds to wait
      * @param syncData Synchronization data for multiple action waiting; use {} if not interested

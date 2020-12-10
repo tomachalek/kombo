@@ -55,12 +55,11 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     constructor(dispatcher:IActionQueue, initialState:T) {
         [this.state$, this.subscription] = dispatcher.registerModel(this, initialState);
-        this.state$.subscribe(
-            undefined,
-            (err) => {
+        this.state$.subscribe({
+            error: (err) => {
                 console.error(err)
             }
-        );
+        });
         this.wakeFn = null;
         this.syncData = null;
         this.actionMatch = {};
