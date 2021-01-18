@@ -50,7 +50,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     private actionMatch:{[actionName:string]:IReducer<T, Action>};
 
-    protected readonly sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
+    private readonly sideEffectMatch:{[actionName:string]:ISideEffectHandler<T, Action>};
 
     constructor(dispatcher:IActionQueue, initialState:T) {
         [this.state$, this.subscription] = dispatcher.registerModel(this, initialState);
