@@ -83,7 +83,7 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
      *  (hours, minutes and secondConcreteComponentss are always in 2-digit format)
      */
     formatDate(d:Date, timeFormat:number=0):string {
-        const opts = {year: 'numeric', month: '2-digit', day: '2-digit'};
+        const opts:{[k:string]:'numeric'|'2-digit'|undefined} = {year: 'numeric', month: '2-digit', day: '2-digit'};
 
         if (timeFormat > 0) {
             opts['hour'] = '2-digit';
