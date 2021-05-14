@@ -2,10 +2,11 @@
 
 Kombo is a simple framework for building rich interactive web applications. It defines a small set
 of classes and types providing state management for [React](https://reactjs.org/)
-applications. Internals are based on [RxJS](http://reactivex.io/) and [Immer.js](https://immerjs.github.io/immer/docs/introduction).
+components. Internals are based on [RxJS](http://reactivex.io/) and [Immer.js](https://immerjs.github.io/immer/docs/introduction).
 Kombo takes some loose inspiration from Flux architecture and Redux library.
-It is used in production (~thousands user per day) in applications containing tens thousands of lines of TypeScript
-code with complex interactivity and open/modular architecture. It can be run on both client and server (Node.JS).
+It is used in production (~thousands user per day) in applications containing tens thousands
+of lines of TypeScript code with complex interactivity and open/modular architecture. It can
+be run on both client and server (Node.JS).
 
 See Kombo in action:
 
@@ -20,8 +21,7 @@ See Kombo in action:
 * [Structure](#structure)
   * [Stateless models](#stateless_models)
   * [Stateful models](#stateful_models)
-  * [Action capturing](#action_capturing)
-  * [Model pausing](#model_pausing)
+  * [Model synchronization](#model_synchronization)
   * [Views](#view_module)
   * [Page initialization](#page_initialization)
 
@@ -32,7 +32,7 @@ See Kombo in action:
 
 * side-effect as first-class citizens
 * multiple models
-  * no global singletons (like e.g. stores in many Flux apps), keep awareness of components' dependencies
+  * no global singletons (like e.g. stores in Flux apps) to keep awareness of components' dependencies
   * support for model composition and synchronization
 * no boilerplate code (or as few as possible)
    * e.g. no action creators (dispatching directly from React components; do you really need to reuse
@@ -44,15 +44,14 @@ See Kombo in action:
 * embrace more traditional "model" as an object which encapsulates a specified subdomain of business logic
   (including API calls etc.)
   * model should know what to do with its related state (no actionCreator/store dilemma)
-  * **stateless model** transforms state with possible explicitly defined side effects
-    * side effects may produce actions (i.e. model does this) but that's where the chain ends
-      (i.e. no action loops),
-  * **stateful model** is inherently impure and can change itself in any way and decide on its own when to notify change listeners
-    (similar to classic event emitter from Flux)
+  * **stateless model** transforms state provided by a reactive stream; it is quite similar to a
+    Redux reducer function but with native support for producing side effects
+  * **stateful model** has direct read access to its state; it can also mix multiple changes state
+  changes and side effect during a single action handling (similar to classic event emitter from Flux)
 * flexible model/state configuration
-  * one model -- one state
-  * many models -- one state
-  * many models -- many states (typically each model handles its state here),
+  * one model -- one state object
+  * many models -- one state object
+  * many models -- many state objects (typically each model handles its state here),
 * synchronization of models using `suspend()` action where model can suspend itself until a specific
   action is triggered and data obtained via a respective action payload
 
@@ -74,29 +73,42 @@ in response to different actions. This is quite similar to the approach used e.g
 programmer from touching the state of a foreign model and passing it around.
 
 It is expected that the state reduction does not mutate the original state. To achieve this,
-different solutions can be used. In Kombo, it is preferred to use primitive data types along with
-Array and Object for model state as it is more convenient to handle such values (between libraries
-interoperability, support for recent JS constructs like array and object destructuring). To keep
-update operations immutable on the native types, Kombo uses the great [Immer.js](https://github.com/immerjs/immer)
-library.
+Kombo uses the great [Immer.js](https://github.com/immerjs/immer) library which allows handling
+state like a mutable object. E.g.:
 
-When using `addActionHandler`, Kombo wraps a respective reducer function in Immer.js `produce` function which
-means the state (so called `draft` in Immer.js) updates can be written in a "mutable" way while Immer.js
-ensures the resulting state does not interfere with the previous one (Immer.JS internals use JS proxies
-for this along with an approach called *persistent data structures*).
+```ts
+(state, action) => {
+    state.data.push(action.payload.data);
+}
+```
 
-But it is also possible to override `StatelessModel.reduce` function in a completely different matter
+It is also possible to override `StatelessModel.reduce` function in a completely different matter
 if needed.
 
-Another great thing about Kombo is that side-effects are first class citizens there. Even if the "redux-like"
-pattern looks pure and cool, it actually does not handle side-effects without additional plug-ins. But
-the truth is, a typical application is all about side-effects.
+Another great thing about Kombo is that side-effects are treated as first class citizens. The basic
+"redux" pattern looks pure and cool but without side-effects, it is practically impossible to write
+a useful application. In Redux, there must be a plug-in installed to achieve that. In Kombo, you
+just write a handler for a side-effect:
 
-To be able to perform asynchornous API calls, synchronize/notify other models etc., Kombo `StatelessModel`
-can specify its side effects bound to different actions. Such a side-effect is always invoked *after*
-the model reduced a respective state based on the action. Side-effect actions are dispatched at will
-via a provided function (see `SEDispatcher` type). In this way it is possible to build chains of asynchronous
-actions with multiple actions dispatched during different stages of the process.
+```ts
+this.addActionHandler(
+    'FORM_SUBMIT',
+    (state, action) => { // the "reduce" part
+        state.isBusy = true;
+    },
+    (state, action, dispatch) => { // the "side-effect" part (optional)
+        ajax$('GET', '/my-service/).subscribe(
+            (data) => {
+                dispatch({name: 'DATA_LOAD_DONE', payload: {data});
+            }
+        )
+    }
+);
+```
+
+A side-effect is always invoked *after* the model reduced a respective state based on the action.
+Side-effect actions are dispatched at will via a provided function (see `SEDispatcher` type).
+In this way it is possible to build chains of asynchronous actions with multiple actions dispatched during different stages of the process.
 
 Actions dispatched via `SEDispatcher` are internally transformed into `SideEffectAction` type which cannot
 invoke another action via the internal action/state stream. This prevents user from creating hard to track
@@ -142,7 +154,6 @@ export class MyModel extends StatelessModel<MyState> {
             (state, action) => {
                 newState.isBusy = false;
                 newState.userId = action.payload.userId;
-                return newState;
             }
         );
     }
@@ -164,83 +175,55 @@ model. But if you consider a problem hard to implement that way, Stateful model 
 the React component's view, both Stateless and Stateful components are the same and can be bound to any model
 via the *Bound* wrapper component.
 
-Kombo is designed in a way that stateful models should be needed only in very specific situations. So it
-is definitely recommended not to overuse them.
 
 ```ts
 export class MyStatefulModel extends StatefulModel {
 
     constructor(dispatcher:ActionDispatcher) {
-        dispatcher.onAction(action => {
-            switch (action.type) {
-                case 'GET_DATA':
-                    this.isBusy = true;
-                    // We don't have to define two actions (GET_DATA, GET_DATA_DONE).
-                    // just notify React components before and after we start to
-                    // process the data reading.
-                    this.emitChange();
-                    ajax$(...).subscribe(
-                        (data) => {
-                            this.data = data;
-                            this.isBusy = false;
-                            this.emitChange();
-                        },
-                        (err) => {
-                            this.data = null;
-                            this.error = err;
-                            this.isBusy = false;
-                            this.emitChange();
-                        }
-                    )
-                break;
+
+        this.addActionHandler(
+            'GET_DATA',
+            action => {
+                this.changeState(
+                    state => {
+                        state.isBusy = true;
+                    }
+                );
+                ajax('GET', '/get-my-data/').subscribe(
+                    (data) => {
+                        this.changeState(state => {
+                            state.data = data;
+                            state.isBusy = false;
+                        });
+                    },
+                    (err) => {
+                        this.changeState(state => {
+                            state.data = null;
+                            state.error = err;
+                            state.isBusy = false;
+                        });
+                    }
+                );
             }
-        });
+        );
     }
 }
 ```
 
-<a name="action_capturing"></a>
-### Action capturing
 
-While having multiple mostly independent models is quite convenient, there are
-situations when all the limitations make solving the problem almost impossible.
-Let's summarize those limitations:
+<a name="Model synchronization"></a>
+ ### Model synchronization
 
-* an action dispatched from a side effect cannot produce another side effect,
-* application does not control order in which its models are triggered by an action.
+ Model synchronization is necessary when working with multiple models each handling its
+ own state. Sooner or later we encounter a situation where a model M1 needs some model M2 to be already
+ done with handling action A1. The model M1 may even need some data from M2 (of course without accessing
+ its state).
 
-But what if we need e.g. the following scenario: We have a model controlling some
-query form. Then we have several modules with models - each ready to read
-data from the query form model. Once user hits *Submit*, we need to validate data
-first and then, if everything is OK, we need to trigger all the dependent models.
+Let's say the model M1 handles a form which also includes some additional subform (backed by the M2
+model) with more or less independent logic. Once submitted, the M2 model validates/submits the subform.
+But the M1 must wait to M2 to decide whether it should submit the main form.
 
-We can use the following Kombo properties:
-
-* it is possible to dispatch a stream which means we can easily synchronously
-  dispatch two actions,
-* Kombo ActionDispatcher allows capturing an action.
-
-Captured actions first trigger registered function and if the function returns
-true then the action hits all the models. So it is possible to check any model
-for its state (generated by a previous action) and then return either true or false.
-
-```ts
-dispatcher.captureAction(
-    'SERVICE_MODELS_QUERY_SUBMIT',
-    (action) => model1.getState().isValid && model2.getState().isValid
-);
-```
-
-Any action can have only one *capturing function* and it is not allowed to
-unregister it.
-
-
-<a name="model_pausing"></a>
- ### Model suspending
-
- Model suspending is a basic synchronization tool for Kombo models (`StatelessModel`, `StatefulModel`).
-
-Let's say a model (A) has to wait for some other model (B) to perform an action
+The  has to wait for some other model (B) to perform an action
 (e.g. to load data via AJAX, 'QUERY_VALIDATION_DONE' in the example below) while both models
 react to the same initial action ('PERFORM_QUERY'). it is possible
  to make the model A wait for the action of B:
@@ -259,7 +242,7 @@ react to the same initial action ('PERFORM_QUERY'). it is possible
             }
             // by returning original syncData we say: "not interested in this action"
             // (= do not send the action down the stream)
-            return syncData; 
+            return syncData;
 
         }).pipe(
             concatMap((matchingAction) => doSomeAsyncStuff(matchingAction.payload))

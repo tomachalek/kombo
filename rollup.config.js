@@ -20,8 +20,7 @@ export default [
                 tsconfigOverride:  {
                     compilerOptions: {
                         declaration: false,
-                        lib: ['es5', 'dom', 'es2015.iterable'],
-                        target: 'es5',
+                        target: 'es2015',
                     }
                 }
             }),
