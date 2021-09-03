@@ -1,7 +1,7 @@
 import alias from 'rollup-plugin-alias';
 import { terser } from 'rollup-plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
-import swc from 'rollup-plugin-swc';
+import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 
 export default [
@@ -14,13 +14,8 @@ export default [
         },
         external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
 		plugins: [
-            swc({
-                jsc: {
-                  parser: {
-                    syntax: 'typescript',
-                  },
-                  target: 'es2016',
-                },
+            typescript({
+              tsconfig: './src/kombo/tsconfig.json'
             }),
             alias({
                 'vendor/intl-messageformat': './../vendor/intl-messageformat'
@@ -39,13 +34,8 @@ export default [
 		],
         external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
 		plugins: [
-            swc({
-                jsc: {
-                  parser: {
-                    syntax: 'typescript',
-                  },
-                  target: 'es2016',
-                },
+            typescript({
+              tsconfig: './src/kombo/tsconfig.json'
             }),
             alias({
                 'vendor/intl-messageformat': './../vendor/intl-messageformat'

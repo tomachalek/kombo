@@ -1,9 +1,10 @@
 all : library typecheck_demo demo
 library : clean typecheck lib
-.PHONY: lib library demo clean typecheck typecheck_demo
+demo: typecheck_demo demo_notc
+.PHONY: lib library demo clean typecheck typecheck_demo demo_notc
 lib :
 	node node_modules/rollup/dist/bin/rollup --c rollup.config.js
-demo :
+demo_notc :
 	node node_modules/webpack/bin/webpack.js --mode development --config webpack.dev.js
 clean :
 	rm -rf ./dist/* ./dist-es6/* ./dist-umd/*
