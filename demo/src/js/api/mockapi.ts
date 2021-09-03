@@ -61,20 +61,22 @@ export class TaskAPI {
 
 export class AdjectivesAPI {
 
-    private adjectives = ['gently', 'crudely', 'slowly', 'dangerously', 'artfully', 'poorly', 'perfectly', 'professionally'];
+    private adjectives = [
+        'gently', 'crudely', 'slowly', 'dangerously', 'artfully', 'poorly', 'perfectly',
+        'professionally', 'mysteriously', 'awkwardly'];
 
     private randomAdjective():string {
         return this.adjectives[Math.round(Math.random() * (this.adjectives.length - 1))];
     }
 
     fetchData():Observable<string> {
-        return Observable.create(observer => {
+        return new Observable(observer => {
             window.setTimeout(
                 () => {
                     observer.next(this.randomAdjective());
                     observer.complete();
                 },
-                2100
+                1800
             );
         });
     }

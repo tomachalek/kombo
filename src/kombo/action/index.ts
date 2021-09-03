@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Subscription, Observable, BehaviorSubject, Subject, of as rxOf, asyncScheduler, isObservable  } from 'rxjs';
-import { startWith, scan, mergeMap, filter, share, observeOn } from 'rxjs/operators';
+import { Subscription, Observable, BehaviorSubject, Subject, asyncScheduler  } from 'rxjs';
+import { startWith, scan, filter, share, observeOn } from 'rxjs/operators';
 import { IActionCapturer, IStatelessModel } from '../model/common';
 import { Action, SEDispatcher, AnyAction } from './common';
 import { StatefulModel } from '../model/stateful';
@@ -48,7 +48,8 @@ export interface IActionQueue {
  * actions through.
  */
 export interface IActionDispatcher extends IActionQueue {
-    dispatch<T extends Action|Observable<Action>>(action:T):void;
+    dispatch<T extends Action>(action:T):void;
+    dispatch<T extends Action<U>, U>(action:T, payload:Partial<U>):void;
 }
 
 /**
@@ -58,8 +59,11 @@ export interface IActionDispatcher extends IActionQueue {
  */
 export interface IFullActionControl extends IActionDispatcher {
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
+
     registerActionListener(fn:(action:Action, dispatch:SEDispatcher)=>void):Subscription;
+
     dispatchSideEffect<T extends Action>(action:T):void;
+    dispatchSideEffect<T extends Action<U>, U>(action:T, payload:Partial<U>):void;
 }
 
 /**
@@ -78,10 +82,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     constructor() {
         this.capturedActions = {};
         this.inAction$ = new Subject<AnyAction<{}>>();
-        const flattened$ = this.inAction$.pipe(
-            mergeMap(v => isObservable(v) ? v : rxOf(v))
-        );
-        this.action$ = flattened$.pipe(
+        this.action$ = this.inAction$.pipe(
             filter((act:Action<{}>) => !(act.name in this.capturedActions)
                         || this.capturedActions[act.name].every(fn => fn(act))),
             share()
@@ -92,10 +93,8 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         this.inAsync$.subscribe(action => {
 
             this.dispatch({
-                isSideEffect:true,
-                name: action.name,
-                payload: action.payload,
-                error: action.error
+                ...action,
+                isSideEffect: true
             });
         });
         this.dispatch = this.dispatch.bind(this);
@@ -110,12 +109,20 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         }
     }
 
-    dispatch<T extends Action|Observable<Action>>(action:T):void {
-        this.inAction$.next(action);
+    dispatch<T extends Action>(action:T):void;
+    dispatch<T extends Action<U>, U>(action:T, payload:U):void;
+    dispatch<T extends Action<U>, U>(action:T, payload?:U):void {
+        this.inAction$.next({...action, payload: {...action.payload, ...payload}});
     }
 
-    dispatchSideEffect<T extends Action>(action:T):void {
-        this.inAsync$.next({...action, isSideEffect: true});
+    dispatchSideEffect<T extends Action>(action:T):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:Partial<U>):void
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload?:Partial<U>):void {
+        this.inAsync$.next({
+            ...action,
+            payload: {...action.payload, ...payload},
+            isSideEffect: true
+        });
     }
 
     /**
@@ -127,17 +134,17 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     }
 
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription {
-        return this.action$.subscribe(
-            action => {
+        return this.action$.subscribe({
+            next: action => {
                 model.wakeUp(action);
                 if (model.isActive()) {
                     model.onAction(action);
                 }
             },
-            err => {
-                console.error(err);
+            error: error => {
+                console.error(error);
             }
-        );
+        });
     }
 
     registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription] {
@@ -154,7 +161,8 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                                 model.sideEffects(
                                     newState,
                                     action,
-                                    seAction => this.inAsync$.next(seAction)
+                                    (seAction, payload?) => this.inAsync$.next(
+                                        {...seAction, payload: {...seAction.payload, ...payload}})
                                 );
                             }
                             return newState;

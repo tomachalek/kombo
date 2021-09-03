@@ -15,7 +15,7 @@
  */
 
 import { StatelessModel } from 'kombo';
-import { ActionNames, Actions } from './actions';
+import { Actions } from './actions';
 import { AdjectivesAPI } from '../api/mockapi';
 
 
@@ -34,42 +34,49 @@ export class AdjectivesModel extends StatelessModel<AdjectivesModelState> {
         super(dispatcher, initState);
         this.api = api;
 
-        this.addActionHandler<Actions.ToggleAddAdjectives>(
-            ActionNames.ToggleAddAdjectives,
+        this.addActionHandler<typeof Actions.ToggleAddAdjectives>(
+            Actions.ToggleAddAdjectives.name,
             (state, action) => {
                 state.isActive = !state.isActive;
             }
         );
-        this.addActionHandler<Actions.FetchAdjectivesDone>(
-            ActionNames.FetchAdjectivesDone,
+
+        this.addActionHandler<typeof Actions.FetchAdjectivesDone>(
+            Actions.FetchAdjectivesDone.name,
             (state, action) => {
                 state.isBusy = false;
             }
         );
-        this.addActionHandler<Actions.ToggleTodo>(
-            ActionNames.FetchTodos,
+
+        this.addActionHandler(
+            Actions.FetchTodos,
             (state, action) => {
-                state.isBusy = true;
+                if (state.isActive) {
+                    state.isBusy = true;
+                }
             },
             (state, action, dispatch) => {
-                this.api.fetchData().subscribe(
-                    (data) => {
-                        dispatch({
-                            name: ActionNames.FetchAdjectivesDone,
-                            payload: {
-                                value: data
-                            }
-                        })
-                    }
-                )
+                if (state.isActive) {
+                    this.api.fetchData().subscribe(
+                        data => {
+                            dispatch({
+                                name: Actions.FetchAdjectivesDone.name,
+                                payload: {
+                                    value: data
+                                }
+                            })
+                        }
+                    );
+                }
             }
         );
-        this.addActionHandler(
-            ActionNames.ToggleAdjectivesHelp,
+
+        this.addActionHandler<typeof Actions.ToggleAdjectivesHelp>(
+            Actions.ToggleAdjectivesHelp.name,
             (state, action) => {
                 state.isHelpVisible = !state.isHelpVisible;
             }
-        )
+        );
     }
 
 }

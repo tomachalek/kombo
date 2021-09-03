@@ -16,9 +16,9 @@
 
 import * as React from 'react';
 
-import {TodoState, TodoModel} from '../models/todo';
-import {BoundWithProps, Bound, ViewUtils, ActionDispatcher} from 'kombo';
-import { ActionNames, Actions } from '../models/actions';
+import { TodoState, TodoModel } from '../models/todo';
+import { BoundWithProps, Bound, ViewUtils, ActionDispatcher } from 'kombo';
+import { Actions } from '../models/actions';
 import { AdjectivesModel, AdjectivesModelState } from '../models/adjectives';
 
 
@@ -27,7 +27,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <TodoText /> --------------------------------
 
-    const TodoText:React.SFC<{
+    const TodoText:React.FC<{
         text:string;
         id:number;
         complete:boolean;
@@ -35,8 +35,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
     }> = (props) => {
 
         const handleInputChange = (evt:React.ChangeEvent<{value:string}>) => {
-            dispatcher.dispatch<Actions.SetTextTodo>({
-                name: ActionNames.SetTextTodo,
+            dispatcher.dispatch<typeof Actions.SetTextTodo>({
+                name: Actions.SetTextTodo.name,
                 payload: {
                     id: props.id,
                     value: evt.target.value
@@ -50,15 +50,15 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <TodoCheckbox /> --------------------------------
 
-    const TodoCheckbox:React.SFC<{
+    const TodoCheckbox:React.FC<{
         id:number;
         checked:boolean;
 
     }> = (props) => {
 
         const handleCheckbox = (evt:React.ChangeEvent<{}>) => {
-            dispatcher.dispatch<Actions.ToggleTodo>({
-                name: ActionNames.ToggleTodo,
+            dispatcher.dispatch<typeof Actions.ToggleTodo>({
+                name: Actions.ToggleTodo.name,
                 payload: {
                     id: props.id
                 }
@@ -70,7 +70,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <ActIcon /> --------------------------------
 
-    const ActIcon:React.SFC<{
+    const ActIcon:React.FC<{
         id:number;
         complete:boolean;
     }> = (props) => {
@@ -79,8 +79,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
         const handleClick = () => {
             if (isActive) {
-                dispatcher.dispatch<Actions.DeleteTodo>({
-                    name: ActionNames.DeleteTodo,
+                dispatcher.dispatch<typeof Actions.DeleteTodo>({
+                    name: Actions.DeleteTodo.name,
                     payload: {id: props.id}
                 });
             }
@@ -103,7 +103,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <TodoRow /> --------------------------------
 
-    const TodoRow:React.SFC<{
+    const TodoRow:React.FC<{
         idx:number;
         id:number;
         text:string;
@@ -127,8 +127,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
     const AddTodoButton = (props) => {
 
         const handleClick = () => {
-            dispatcher.dispatch<Actions.AddTodo>({
-                name: ActionNames.AddTodo
+            dispatcher.dispatch<typeof Actions.AddTodo>({
+                name: Actions.AddTodo.name
             });
         }
 
@@ -137,14 +137,14 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <GenerateTasks /> --------------------------------
 
-    const GenerateTasks:React.SFC<{
+    const GenerateTasks:React.FC<{
         isBusy:boolean;
 
     }> = (props) => {
 
         const handleClick = () => {
-            dispatcher.dispatch<Actions.FetchTodos>({
-                name: ActionNames.FetchTodos
+            dispatcher.dispatch<typeof Actions.FetchTodos>({
+                name: Actions.FetchTodos.name
             });
         };
 
@@ -158,13 +158,13 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <AddAdjectivesCheckbox /> --------------------
 
-    const AddAdjectivesCheckbox:React.SFC<{
+    const AddAdjectivesCheckbox:React.FC<{
         active:boolean;
     }> = (props) => {
 
         const handleChange = () => {
-            dispatcher.dispatch<Actions.ToggleAddAdjectives>({
-                name: ActionNames.ToggleAddAdjectives
+            dispatcher.dispatch<typeof Actions.ToggleAddAdjectives>({
+                name: Actions.ToggleAddAdjectives.name
             })
         };
 
@@ -177,7 +177,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // ------------------- <TodoTable /> --------------------------------
 
-    const TodoTable:React.SFC<{version:string} & TodoState> = (props) => {
+    const TodoTable:React.FC<{version:string} & TodoState> = (props) => {
 
         return (
             <div className="TodoTable">
@@ -204,11 +204,11 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
 
     // --------------- <AdjLoader /> -----------------------
 
-    const AdjLoader:React.SFC<AdjectivesModelState> = (props) => {
+    const _AdjLoader:React.FC<AdjectivesModelState> = (props) => {
 
         const handleClick = () => {
-            dispatcher.dispatch<Actions.ToggleAdjectivesHelp>({
-                name: ActionNames.ToggleAdjectivesHelp,
+            dispatcher.dispatch<typeof Actions.ToggleAdjectivesHelp>({
+                name: Actions.ToggleAdjectivesHelp.name,
             });
         };
 
@@ -237,21 +237,21 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
         );
     };
 
-    const BoundAdjLoader = Bound<AdjectivesModelState>(AdjLoader, adjModel);
+    const AdjLoader = Bound<AdjectivesModelState>(_AdjLoader, adjModel);
 
     // ---------------------- <TodoWidget /> -----------------------------
 
-    const TodoWidget:React.SFC<{version:string}> = (props) => (
+    const TodoWidget:React.FC<{version:string}> = (props) => (
         <div>
             <BoundTodoTable version={props.version} />
-            <BoundAdjLoader />
+            <AdjLoader />
             <div></div>
         </div>
     );
 
 
     return {
-        TodoWidget: TodoWidget
+        TodoWidget
     };
 
 }

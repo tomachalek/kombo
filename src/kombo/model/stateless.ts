@@ -149,9 +149,10 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * @param reducer
      * @param seHandler
      */
-    addActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    addActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
+        const actionName = typeof action === 'string' ? action : action.name;
         if (reducer) {
             if (this.actionMatch[actionName] === undefined) {
                 this.actionMatch[actionName] = produce(reducer) as IReducer<T, A>;
@@ -180,8 +181,12 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * model are running and each model wants to listen to just a subset
      * of actions.
      */
-    addActionSubtypeHandler<A extends Action>(actionName:string, match:(action:A)=>boolean,
-            reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    addActionSubtypeHandler<A extends Action>(
+        action:string|A, match:(action:A)=>boolean,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
+        const actionName = typeof action === 'string' ? action : action.name;
         if (reducer) {
             if (this.actionMatch[actionName] === undefined) {
                 this.actionMatch[actionName] = (state:T, action:A) => match(action) ? (produce(reducer) as IReducer<T, A>)(state, action) : state;
@@ -209,7 +214,12 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * Replaces possible existing action handler.
      * This can be used e.g. when overriding an existing model.
      */
-    replaceActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    replaceActionHandler<A extends Action>(
+        action:string|A,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
+        const actionName = typeof action === 'string' ? action : action.name;
         delete this.actionMatch[actionName];
         delete this.sideEffectMatch[actionName];
         return this.addActionHandler(actionName, reducer, seProducer);
@@ -220,7 +230,13 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * registered reduce operation will be performed.
      * This can be used e.g. when extending an existing model.
      */
-    extendActionHandler<A extends Action>(actionName:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    extendActionHandler<A extends Action>(
+        action:string|A,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
+
+        const actionName = typeof action === 'string' ? action : action.name;
         const currReducer = this.actionMatch[actionName] || ((state:T, action:A) => state);
         this.actionMatch[actionName] = (state:T, action:A) => {
             const tmp = currReducer(state, action);
@@ -279,7 +295,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      */
     suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
-            return throwError(new Error('The model is already suspended.'));
+            return throwError(() => new Error('The model is already suspended.'));
         }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
@@ -288,7 +304,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
             timeout > 0 ?
                 takeUntil(
                     timer(timeout).pipe(
-                        concatMap(v => throwError(new Error(`Model suspend timeout (${timeout}ms)`)))
+                        concatMap(v => throwError(() => new Error(`Model suspend timeout (${timeout}ms)`)))
                     )
                 ) :
                 map(v => v),
@@ -363,27 +379,6 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      */
     getState():T {
         return this.state$.getValue();
-    }
-
-    /**
-     * @deprecated This will be removed in 1.x.x. Please use either
-     * addActionListener() which makes use of Immer.js and frees you
-     * from ensuring immutability manually or use your own immutability
-     * solution.
-     */
-    copyState(state:T):T {
-        if (typeof Object['assign'] === 'function') {
-            return <T>Object['assign']({}, state);
-
-        } else {
-            const ans:{[key:string]:any} = {};
-            for (let p in state) {
-                if (state.hasOwnProperty(p)) {
-                    ans[p] = state[p];
-                }
-            }
-            return <T>ans;
-        }
     }
 
     unregister():void {
