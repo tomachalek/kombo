@@ -109,24 +109,36 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
         }
     }
 
-    addActionHandler<A extends Action>(actionName:string, handler:(action:A)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action>(actionName:[string, string], handler:(action:A1|A2)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(actionName:[string, string, string], handler:(action:A1|A2|A3)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(actionName:[string, string, string, string], handler:(action:A1|A2|A3|A4)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(actionName:[string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(actionName:[string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(actionName:[string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(actionName:[string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(actionName:[string, string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
-    addActionHandler(actionName:string|Array<string>, handler:(action:Action)=>void):void {
-        (Array.isArray(actionName) ? actionName : [actionName]).forEach(name => {
-            if (this.actionMatch[name] === undefined) {
-                this.actionMatch[name] = handler;
+    addActionHandler<A extends Action>(action:string, handler:(action:A)=>void):void;
+    addActionHandler<A extends Action>(action:A, handler:(action:A)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action>(action:[string, string], handler:(action:A1|A2)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action>(action:[A1, A2], handler:(action:A1|A2)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[string, string, string], handler:(action:A1|A2|A3)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[A1, A2, A3], handler:(action:A1|A2|A3)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[string, string, string, string], handler:(action:A1|A2|A3|A4)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[A1, A2, A3, A4], handler:(action:A1|A2|A3|A4)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[A1, A2, A3, A4, A5], handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[A1, A2, A3, A4, A5, A6], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[string, string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8, A9], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    addActionHandler(action:string|Array<string>|Action|Array<Action>, handler:(action:Action)=>void):void {
+        (Array.isArray(action) ? action : [action]).forEach(
+            item => {
+                const name = typeof item === 'string' ? item : item.name;
+                if (this.actionMatch[name] === undefined) {
+                    this.actionMatch[name] = handler;
 
-            } else {
-                throw new Error(`Action handler for [${actionName}] already defined.`);
+                } else {
+                    throw new Error(`Action handler for [${name}] already defined.`);
+                }
             }
-        });
+        );
     }
 
     addActionSubtypeHandler<A extends Action>(actionName:string|Array<string>, match:(action:A)=>boolean, handler:(action:A)=>void):void {
@@ -198,7 +210,7 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      */
     suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
-            return throwError(new Error('The model is already suspended.'));
+            return throwError(() => new Error('The model is already suspended.'));
         }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
@@ -207,7 +219,7 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
             timeout > 0 ?
                 takeUntil(
                     timer(timeout).pipe(
-                        concatMap(v => throwError(new Error(`Model suspend timeout (${timeout}ms)`)))
+                        concatMap(v => throwError(() => new Error(`Model suspend timeout (${timeout}ms)`)))
                     )
                 ) :
                 map(v => v),

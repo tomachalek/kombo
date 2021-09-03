@@ -60,7 +60,21 @@ module.exports = {
             },
             {
                 test: /\.tsx?$/,
-                loader: 'ts-loader'
+                exclude: /(node_modules|bower_components)/,
+                use: {
+                    loader: 'swc-loader',
+                    options: {
+                        jsc: {
+                            parser: {
+                                syntax: 'typescript',
+                                tsx: true,
+                                decorators: false,
+                                dynamicImport: false
+                            },
+                            target: 'es2016'
+                        }
+                    }
+                }
             },
         ]
     },

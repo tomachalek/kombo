@@ -14,74 +14,63 @@
  * limitations under the License.
  */
 
-import {Action} from 'kombo';
+import { Action } from 'kombo';
 import { ServerTask } from '../api/mockapi';
 
-export enum ActionNames {
-    AddTodo = 'ADD_TODO',
-    SetTextTodo = 'SET_TEXT_TODO',
-    DeleteTodo = 'DELETE_TODO',
-    ToggleTodo = 'TOGGLE_TODO',
-    FetchTodos = 'FETCH_TODOS',
-    FetchTodosDone = 'FETCH_TODOS_DONE',
-    ToggleAddAdjectives = 'TOGGLE_ADD_ADJECTIVES',
-    FetchAdjectivesDone = 'FETCH_ADJECTIVES_DONE',
-    ToggleAdjectivesHelp = 'TOGGLE_ADJECTIVES_HELP'
-}
 
-export namespace Actions {
+export class Actions {
 
-    export interface AddTodo extends Action<{
+    static AddTodo:Action<{
         id:number;
         value:string;
-    }> {
-        name:ActionNames.AddTodo;
+    }> = {
+        name: 'ADD_TODO'
     }
 
-    export interface SetTextTodo extends Action<{
+    static SetTextTodo:Action<{
         id:number;
         value:string;
-    }> {
-        name:ActionNames.SetTextTodo;
+    }> = {
+        name: 'SET_TEXT_TODO'
     }
 
-    export interface DeleteTodo extends Action<{
+    static DeleteTodo:Action<{
         id:number;
-    }> {
-        name:ActionNames.DeleteTodo;
+    }> = {
+        name: 'DELETE_TODO'
     }
 
-    export interface ToggleTodo extends Action<{
+    static ToggleTodo:Action<{
         id:number;
-    }> {
-        name:ActionNames.ToggleTodo;
+    }> = {
+        name: 'TOGGLE_TODO'
     }
 
-    export interface FetchTodos extends Action<{
+    static FetchTodos:Action<{
 
-    }> {
-        name:ActionNames.FetchTodos;
+    }> = {
+        name: 'FETCH_TODOS'
     }
 
-    export interface FetchTodosDone extends Action<{
+    static FetchTodosDone:Action<{
         data:ServerTask;
-    }> {
-        name:ActionNames.FetchTodosDone;
+    }> = {
+        name: 'FETCH_TODOS_DONE'
     }
 
-    export interface ToggleAddAdjectives extends Action<{
-    }> {
-        name:ActionNames.ToggleAddAdjectives;
+    static ToggleAddAdjectives:Action<{
+    }> = {
+        name: 'TOGGLE_ADD_ADJECTIVES'
     }
 
-    export interface FetchAdjectivesDone extends Action<{
+    static FetchAdjectivesDone:Action<{
         value:string;
-    }> {
-        name:ActionNames.FetchAdjectivesDone;
+    }> = {
+        name: 'FETCH_ADJECTIVES_DONE'
     }
 
-    export interface ToggleAdjectivesHelp extends Action<{
-    }> {
-        name:ActionNames.ToggleAdjectivesHelp;
+    static ToggleAdjectivesHelp:Action<{
+    }> = {
+        name: 'TOGGLE_ADJECTIVES_HELP'
     }
 }

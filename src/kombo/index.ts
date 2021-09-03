@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export {
+export type {
         Action,
         SEDispatcher,
         SideEffectAction,
@@ -24,19 +24,20 @@ export {
         INewStateReducer
 } from './action/common';
 
-export {
+export type {
         IActionDispatcher,
         IActionQueue,
-        IFullActionControl,
-        ActionDispatcher
+        IFullActionControl
 } from './action/index';
+
+export { ActionDispatcher } from './action/index';
 
 export {
         Bound,
         BoundWithProps
-} from './components';
+} from './components/index';
 
-export {
+export type {
         ITranslator
 } from './l10n';
 
@@ -44,7 +45,7 @@ export {
         ViewUtils
 } from './components/util';
 
-export {
+export type {
         IModel,
         IActionCapturer,
         IActionHandlerModifier,
