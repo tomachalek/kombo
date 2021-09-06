@@ -49,7 +49,9 @@ export interface IActionQueue {
  */
 export interface IActionDispatcher extends IActionQueue {
     dispatch<T extends Action>(action:T):void;
-    dispatch<T extends Action<U>, U>(action:T, payload:Partial<U>):void;
+    dispatch<T extends Action<U>, U>(action:T, error:Error):void;
+    dispatch<T extends Action<U>, U>(action:T, payload:U):void;
+    dispatch<T extends Action<U>, U>(action:T, payload:U, error:Error):void;
 }
 
 /**
@@ -58,12 +60,15 @@ export interface IActionDispatcher extends IActionQueue {
  * It is meant to be used with stateful and legacy models.
  */
 export interface IFullActionControl extends IActionDispatcher {
+
     registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
 
     registerActionListener(fn:(action:Action, dispatch:SEDispatcher)=>void):Subscription;
 
     dispatchSideEffect<T extends Action>(action:T):void;
-    dispatchSideEffect<T extends Action<U>, U>(action:T, payload:Partial<U>):void;
+    dispatchSideEffect<T extends Action>(action:T, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
 }
 
 /**
@@ -110,17 +115,26 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     }
 
     dispatch<T extends Action>(action:T):void;
+    dispatch<T extends Action<U>, U>(action:T, error:Error):void;
     dispatch<T extends Action<U>, U>(action:T, payload:U):void;
-    dispatch<T extends Action<U>, U>(action:T, payload?:U):void {
-        this.inAction$.next({...action, payload: {...action.payload, ...payload}});
+    dispatch<T extends Action<U>, U>(action:T, payload:U, error:Error):void;
+    dispatch<T extends Action<U>, U>(action:T, payload?:U, error?:Error):void {
+        this.inAction$.next({
+            name: action.name,
+            payload: {...action.payload, ...payload},
+            error
+        });
     }
 
     dispatchSideEffect<T extends Action>(action:T):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:Partial<U>):void
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload?:Partial<U>):void {
+    dispatchSideEffect<T extends Action>(action:T, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload?:U, error?:Error):void {
         this.inAsync$.next({
-            ...action,
+            name: action.name,
             payload: {...action.payload, ...payload},
+            error,
             isSideEffect: true
         });
     }
@@ -147,7 +161,11 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         });
     }
 
-    registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription] {
+    registerModel<T, U>(
+        model:IStatelessModel<T, U>,
+        initialState:T
+    ):[BehaviorSubject<T>, Subscription] {
+
         const state$ = new BehaviorSubject(initialState);
         const subscr = this.action$.pipe(
             startWith(null),
@@ -161,8 +179,17 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                                 model.sideEffects(
                                     newState,
                                     action,
-                                    (seAction, payload?) => this.inAsync$.next(
-                                        {...seAction, payload: {...seAction.payload, ...payload}})
+                                    <T extends Action<U>, U>(
+                                        seAction:T,
+                                        payload?:U,
+                                        error?:Error
+                                    ) => this.inAsync$.next(
+                                        {
+                                            name: seAction.name,
+                                            payload: {...seAction.payload, ...payload},
+                                            error
+                                        }
+                                    )
                                 );
                             }
                             return newState;
