@@ -173,8 +173,17 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * 2) action cannot be further chained with other actions
      *
      */
-    dispatchSideEffect<A extends Action>(action:A):void {
-        this.dispatcher.dispatchSideEffect(action);
+    dispatchSideEffect<T extends Action>(action:T):void;
+    dispatchSideEffect<T extends Action>(action:T, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
+        if (error) {
+            this.dispatcher.dispatchSideEffect(action, payloadOrError, error);
+
+        } else {
+            this.dispatcher.dispatchSideEffect(action, payloadOrError);
+        }
     }
 
     /**
