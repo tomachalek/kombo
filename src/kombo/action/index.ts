@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Subscription, Observable, BehaviorSubject, Subject, asyncScheduler  } from 'rxjs';
+import { Subscription, Observable, BehaviorSubject, Subject, asapScheduler  } from 'rxjs';
 import { startWith, scan, filter, share, observeOn } from 'rxjs/operators';
 import { IActionCapturer, IStatelessModel } from '../model/common';
 import { Action, SEDispatcher, AnyAction } from './common';
@@ -94,15 +94,14 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         );
 
         this.inAsync$ = new Subject<Action>().pipe(
-            observeOn(asyncScheduler)) as Subject<Action>;
+            observeOn(asapScheduler)
+        ) as Subject<Action>;
         this.inAsync$.subscribe(action => {
-
             this.dispatch({
                 ...action,
                 isSideEffect: true
             });
         });
-        this.dispatch = this.dispatch.bind(this);
     }
 
     captureAction(actionName:string, capturer:IActionCapturer):void {
@@ -118,11 +117,15 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     dispatch<T extends Action<U>, U>(action:T, error:Error):void;
     dispatch<T extends Action<U>, U>(action:T, payload:U):void;
     dispatch<T extends Action<U>, U>(action:T, payload:U, error:Error):void;
-    dispatch<T extends Action<U>, U>(action:T, payload?:U, error?:Error):void {
+    dispatch<T extends Action<U>, U>(action:T, payloadOrError?:U|Error, error?:Error):void {
+        const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
+        const errorResolved = payloadOrError instanceof Error ?
+            payloadOrError :
+            error ? error : action.error;
         this.inAction$.next({
             name: action.name,
             payload: {...action.payload, ...payload},
-            error
+            error: errorResolved
         });
     }
 
@@ -130,11 +133,15 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     dispatchSideEffect<T extends Action>(action:T, error:Error):void;
     dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
     dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload?:U, error?:Error):void {
+    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
+        const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
+        const errorResolved = payloadOrError instanceof Error ?
+            payloadOrError :
+            error ? error : action.error;
         this.inAsync$.next({
             name: action.name,
             payload: {...action.payload, ...payload},
-            error,
+            error: errorResolved,
             isSideEffect: true
         });
     }
