@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.91.9",
+  "version": "0.91.10",
   "author": {
     "name": "Tomas Machalek"
   },
@@ -11,11 +11,11 @@
     "immer": "^9.0.6"
   },
   "peerDependencies": {
-    "@types/react": "^17.0.19",
+    "@types/react": "^17.0.27",
     "@types/react-dom": "^17.0.9",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "rxjs": "^7.3.0"
+    "rxjs": "^7.3.1"
   },
   "description": "A simple base for client-side application based on React & Rx.JS",
   "devDependencies": {
