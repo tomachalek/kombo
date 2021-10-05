@@ -75,6 +75,19 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
     }
 
     /**
+     * Log all (or all matching if handledOnly is true) actions
+     * to console. This is for debugging purposes.
+     */
+     DEBUG_logActions(handledOnly:boolean = true):void {
+        this._onActionMatch = (_, a:Action, m:boolean) => {
+            if (m || !handledOnly) {
+                console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${a.name}%c\npayload:\n%c${JSON.stringify(a.payload, null, 2)}%c\nerror:\n%c${a.error}`,
+                    'color: #ee6015', 'color: green', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaa', 'color: black', 'color: #aaa', 'color: black');
+            }
+        }
+    }
+
+    /**
      * Export state using Immer's current().
      * This is only for debugging purposes.
      *
