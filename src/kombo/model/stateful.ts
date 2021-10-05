@@ -154,19 +154,40 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
         );
     }
 
-    addActionSubtypeHandler<A extends Action>(actionName:string|Array<string>, match:(action:A)=>boolean, handler:(action:A)=>void):void {
-        (Array.isArray(actionName) ? actionName : [actionName]).forEach(name => {
-            if (this.actionMatch[name] === undefined) {
-                this.actionMatch[name] = (action:A) => {
-                    if (match(action)) {
-                        handler(action);
-                    }
-                };
+    addActionSubtypeHandler<A extends Action>(action:string, match:(action:A)=>boolean, handler:(action:A)=>void):void;
+    addActionSubtypeHandler<A extends Action>(action:A, match:(action:A)=>boolean, handler:(action:A)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action>(action:[string, string], match:(action:A1|A2)=>boolean, handler:(action:A1|A2)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action>(action:[A1, A2], match:(action:A1|A2)=>boolean, handler:(action:A1|A2)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[string, string, string], match:(action:A1|A2|A3)=>boolean, handler:(action:A1|A2|A3)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[A1, A2, A3], match:(action:A1|A2|A3)=>boolean, handler:(action:A1|A2|A3)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[string, string, string, string], match:(action:A1|A2|A3|A4)=>boolean, handler:(action:A1|A2|A3|A4)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[A1, A2, A3, A4], match:(action:A1|A2|A3|A4)=>boolean, handler:(action:A1|A2|A3|A4)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[string, string, string, string, string], match:(action:A1|A2|A3|A4|A5)=>boolean, handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[A1, A2, A3, A4, A5], match:(action:A1|A2|A3|A4|A5)=>boolean, handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[string, string, string, string, string, string], match:(action:A1|A2|A3|A4|A5|A6)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[A1, A2, A3, A4, A5, A6], match:(action:A1|A2|A3|A4|A5|A6)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[string, string, string, string, string, string, string], match:(action:A1|A2|A3|A4|A5|A6|A7)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7], match:(action:A1|A2|A3|A4|A5|A6|A7)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[string, string, string, string, string, string, string, string], match:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8], match:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[string, string, string, string, string, string, string, string, string], match:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    addActionSubtypeHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8, A9], match:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>boolean, handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    addActionSubtypeHandler<A extends Action>(action:string|Array<string>|Action|Array<Action>, match:(action:A)=>boolean, handler:(action:A)=>void):void {
+        (Array.isArray(action) ? action : [action]).forEach(
+            item => {
+                const name = typeof item === 'string' ? item : item.name;
+                if (this.actionMatch[name] === undefined) {
+                    this.actionMatch[name] = (action:A) => {
+                        if (match(action)) {
+                            handler(action);
+                        }
+                    };
 
-            } else {
-                throw new Error(`Action handler for [${actionName}] already defined.`);
+                } else {
+                    throw new Error(`Action handler for [${name}] already defined.`);
+                }
             }
-        });
+        );
     }
 
     onAction(action:Action):void {
