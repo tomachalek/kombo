@@ -72,7 +72,9 @@ export interface ISideEffectHandler<T, U extends Action> {
  */
 export interface SEDispatcher {
     <T extends Action>(seAction:T):void;
+    <T extends Action<U>, U>(seAction:T, error:Error):void;
     <T extends Action<U>, U>(seAction:T, payload:U):void;
+    <T extends Action<U>, U>(seAction:T, payload:U, error:Error):void;
 }
 
 /**
