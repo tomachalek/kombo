@@ -186,17 +186,17 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                                 model.sideEffects(
                                     newState,
                                     action,
-                                    <T extends Action<U>, U>(
-                                        seAction:T,
-                                        payload?:U,
-                                        error?:Error
-                                    ) => this.inAsync$.next(
-                                        {
+                                    <T extends Action<U>, U={}>(seAction:T, payloadOrError?:U|Error, error?:Error) => {
+                                        const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
+                                        const errorResolved = payloadOrError instanceof Error ?
+                                            payloadOrError :
+                                            error ? error : seAction.error;
+                                        this.inAsync$.next({
                                             name: seAction.name,
                                             payload: {...seAction.payload, ...payload},
-                                            error
-                                        }
-                                    )
+                                            error: errorResolved
+                                        });
+                                    }
                                 );
                             }
                             return newState;
