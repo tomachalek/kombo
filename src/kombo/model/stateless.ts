@@ -162,6 +162,8 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * @param reducer
      * @param seHandler
      */
+    addActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    addActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
     addActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
@@ -194,11 +196,9 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * model are running and each model wants to listen to just a subset
      * of actions.
      */
-    addActionSubtypeHandler<A extends Action>(
-        action:string|A, match:(action:A)=>boolean,
-        reducer:INewStateReducer<T, A>|null,
-        seProducer?:ISideEffectHandler<T, A>
-    ):IActionHandlerModifier {
+    addActionSubtypeHandler<A extends Action>(action:string, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    addActionSubtypeHandler<A extends Action>(action:A, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    addActionSubtypeHandler<A extends Action>(action:string|A, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         const actionName = typeof action === 'string' ? action : action.name;
         if (reducer) {
             if (this.actionMatch[actionName] === undefined) {
@@ -227,11 +227,9 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * Replaces possible existing action handler.
      * This can be used e.g. when overriding an existing model.
      */
-    replaceActionHandler<A extends Action>(
-        action:string|A,
-        reducer:INewStateReducer<T, A>|null,
-        seProducer?:ISideEffectHandler<T, A>
-    ):IActionHandlerModifier {
+    replaceActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    replaceActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    replaceActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         const actionName = typeof action === 'string' ? action : action.name;
         delete this.actionMatch[actionName];
         delete this.sideEffectMatch[actionName];
@@ -243,11 +241,9 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * registered reduce operation will be performed.
      * This can be used e.g. when extending an existing model.
      */
-    extendActionHandler<A extends Action>(
-        action:string|A,
-        reducer:INewStateReducer<T, A>|null,
-        seProducer?:ISideEffectHandler<T, A>
-    ):IActionHandlerModifier {
+    extendActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    extendActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
+    extendActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
 
         const actionName = typeof action === 'string' ? action : action.name;
         const currReducer = this.actionMatch[actionName] || ((state:T, action:A) => state);
