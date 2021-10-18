@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "0.92.1",
+  "version": "0.92.3",
   "author": {
     "name": "Tomas Machalek"
   },
@@ -11,34 +11,34 @@
     "immer": "^9.0.6"
   },
   "peerDependencies": {
-    "@types/react": "^17.0.27",
+    "@types/react": "^17.0.30",
     "@types/react-dom": "^17.0.9",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "rxjs": "^7.3.1"
+    "rxjs": "^7.4.0"
   },
   "description": "A simple base for client-side application based on React & Rx.JS",
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@swc/core": "^1.2.84",
-    "css-loader": "^6.2.0",
+    "@rollup/plugin-node-resolve": "^13.0.5",
+    "@swc/core": "^1.2.99",
+    "css-loader": "^6.4.0",
     "file-loader": "^6.2.0",
-    "less": "^4.1.1",
-    "less-loader": "^10.0.1",
-    "rollup": "^2.56.3",
+    "less": "^4.1.2",
+    "less-loader": "^10.1.0",
+    "rollup": "^2.58.0",
     "rollup-plugin-alias": "^2.2.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-swc": "^0.2.0",
     "rollup-plugin-terser": "7.0.2",
     "rollup-plugin-typescript2": "^0.30.0",
-    "style-loader": "^3.2.1",
-    "swc-loader": "^0.1.14",
-    "terser-webpack-plugin": "^5.2.2",
-    "tslib": "^1.11.1",
-    "typescript": "^4.4.2",
-    "webpack": "^5.51.2",
-    "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.1.0",
+    "style-loader": "^3.3.0",
+    "swc-loader": "^0.1.15",
+    "terser-webpack-plugin": "^5.2.4",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.4",
+    "webpack": "^5.58.2",
+    "webpack-cli": "^4.9.0",
+    "webpack-dev-server": "^4.3.1",
     "webpack-merge": "^5.8.0"
   },
   "homepage": "https://github.com/tomachalek/kombo#readme",
