@@ -17,7 +17,7 @@
 import { Subject, Subscription, BehaviorSubject, Observable, throwError, of as rxOf, timer } from 'rxjs';
 import { concatMap, takeUntil, reduce, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
-import { IModel, ISuspendable } from './common';
+import { IModel, ISuspendable, ModelActionLoggingArgs, _payloadFilter } from './common';
 import { IEventEmitter, Action, IStateChangeListener } from '../action/common';
 import { IFullActionControl } from '../action';
 
@@ -77,11 +77,19 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * Log all (or all matching if handledOnly is true) actions
      * to console. This is for debugging purposes.
      */
-    DEBUG_logActions(handledOnly:boolean = true):void {
+    DEBUG_logActions({handledOnly, payloadFilter, expandablePayload}:ModelActionLoggingArgs):void {
         this._onActionMatch = (a:Action, m:boolean) => {
             if (m || !handledOnly) {
-                console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${a.name}%c\npayload:\n%c${JSON.stringify(a.payload, null, 2)}%c\nerror:\n%c${a.error}`,
-                    'color: #ee6015', 'color: green', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaa', 'color: black', 'color: #aaa', 'color: black');
+                const aMod = _payloadFilter(a, payloadFilter);
+                if (expandablePayload) {
+                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\nerror:\n%c${aMod.error}`,
+                    'color: #ee6015', 'color: #00ee00', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
+                    console.log(`payload${payloadFilter ? ' (filtered)' : ''}: `, JSON.parse(JSON.stringify(aMod.payload)));
+
+                } else {
+                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\npayload${payloadFilter ? ' (filtered)' : ''}:\n%c${JSON.stringify(aMod.payload, null, 2)}%c\nerror:\n%c${aMod.error}`,
+                    'color: #ee6015', 'color: #00ee00', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaaaaa', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
+                }
             }
         }
     }

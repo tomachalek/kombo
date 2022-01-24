@@ -45,6 +45,41 @@ export interface IActionHandlerModifier {
 
 }
 
+export interface ModelActionLoggingArgs {
+
+    handledOnly?:boolean;
+
+    /**
+     * If undefined, then all the properties of a payload are displayed.
+     * Otherwise only the ones with the 'true' value.
+     */
+    payloadFilter?:{[prop:string]:boolean};
+
+    /**
+     * If true then the payload is logged on a separate line and passed through JSON serialization
+     * to keep it accessible (expandable).
+     */
+    expandablePayload?:boolean;
+}
+
+/**
+ * _payloadFilter produces a modified action with filtered payload according to the 'filt'
+ * argument. This is intended only for DEBUG_* functions.
+ */
+export function _payloadFilter(a:Action, filt:undefined|{[k:string]:boolean}):Action {
+    if (!filt) {
+        return {...a};
+    }
+    const p2 = {};
+    const srcPayload = a.payload || {};
+    for (let k in srcPayload) {
+        if (filt[k]) {
+            p2[k] = srcPayload[k];
+        }
+    }
+    return {...a, payload: p2};
+}
+
 /**
  * A general model implementation as viewed from
  * the perspective of a React component.
@@ -70,5 +105,13 @@ export interface IModel<T> {
      * during the whole application lifecycle.
      */
     unregister():void;
+
+
+    /**
+     * Log all (or all matching only if handledOnly is set to true) actions
+     * to console. This is for debugging purposes.
+     */
+    DEBUG_logActions(args:ModelActionLoggingArgs):void;
+
 }
 
