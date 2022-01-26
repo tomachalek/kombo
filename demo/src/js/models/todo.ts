@@ -159,7 +159,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 state.generateAdjectives = !state.generateAdjectives;
             }
         );
-        this.DEBUG_logActions({expandablePayload: false, payloadFilter: {value: true}})
+
+        this.DEBUG_logActions();
     }
 
 }
