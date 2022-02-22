@@ -77,18 +77,20 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * Log all (or all matching if handledOnly is true) actions
      * to console. This is for debugging purposes.
      */
-    DEBUG_logActions({handledOnly, payloadFilter, expandablePayload}:ModelActionLoggingArgs):void {
+    DEBUG_logActions(args?:ModelActionLoggingArgs):void {
+        const {handledOnly, payloadFilter, expandablePayload} = {
+            handledOnly: true, payloadFilter: undefined, expandablePayload: true, ... args};
         this._onActionMatch = (a:Action, m:boolean) => {
             if (m || !handledOnly) {
                 const aMod = _payloadFilter(a, payloadFilter);
                 if (expandablePayload) {
-                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\nerror:\n%c${aMod.error}`,
-                    'color: #ee6015', 'color: #00ee00', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
+                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\nerror: %c${aMod.error}`,
+                    'color: #ee6015', 'color: #33bb33', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
                     console.log(`payload${payloadFilter ? ' (filtered)' : ''}: `, JSON.parse(JSON.stringify(aMod.payload)));
 
                 } else {
-                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\npayload${payloadFilter ? ' (filtered)' : ''}:\n%c${JSON.stringify(aMod.payload, null, 2)}%c\nerror:\n%c${aMod.error}`,
-                    'color: #ee6015', 'color: #00ee00', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaaaaa', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
+                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\npayload${payloadFilter ? ' (filtered)' : ''}:\n%c${JSON.stringify(aMod.payload, null, 2)}%c\nerror: %c${aMod.error}`,
+                    'color: #ee6015', 'color: #33bb33', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaaaaa', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
                 }
             }
         }
@@ -193,6 +195,78 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
 
                 } else {
                     throw new Error(`Action handler for [${name}] already defined.`);
+                }
+            }
+        );
+    }
+
+    /**
+     * replaceActionHandler replaces possible existing handler for an action.
+     * In case there is no existing handler for the action, the function behaves
+     * just like addActionHandler.
+    */
+    replaceActionHandler<A extends Action>(action:string, handler:(action:A)=>void):void;
+    replaceActionHandler<A extends Action>(action:A, handler:(action:A)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action>(action:[string, string], handler:(action:A1|A2)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action>(action:[A1, A2], handler:(action:A1|A2)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[string, string, string], handler:(action:A1|A2|A3)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[A1, A2, A3], handler:(action:A1|A2|A3)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[string, string, string, string], handler:(action:A1|A2|A3|A4)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[A1, A2, A3, A4], handler:(action:A1|A2|A3|A4)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[A1, A2, A3, A4, A5], handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[A1, A2, A3, A4, A5, A6], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[string, string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    replaceActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8, A9], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    replaceActionHandler(action:string|Array<string>|Action|Array<Action>, handler:(action:Action)=>void):void {
+        (Array.isArray(action) ? action : [action]).forEach(
+            item => {
+                const name = typeof item === 'string' ? item : item.name;
+                this.actionMatch[name] = handler;
+            }
+        );
+    }
+
+    /**
+     * extendActionHandler adds another handler for an already handled action. This is suitable
+     * mostly for classes inherited from some base class with some predefined handlers.
+     * This additional handler is called after the original handler finishes.
+     * In case there is no existing handler for the action, the function throws an error.
+     */
+    extendActionHandler<A extends Action>(action:string, handler:(action:A)=>void):void;
+    extendActionHandler<A extends Action>(action:A, handler:(action:A)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action>(action:[string, string], handler:(action:A1|A2)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action>(action:[A1, A2], handler:(action:A1|A2)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[string, string, string], handler:(action:A1|A2|A3)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action:[A1, A2, A3], handler:(action:A1|A2|A3)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[string, string, string, string], handler:(action:A1|A2|A3|A4)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action:[A1, A2, A3, A4], handler:(action:A1|A2|A3|A4)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action:[A1, A2, A3, A4, A5], handler:(action:A1|A2|A3|A4|A5)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action:[A1, A2, A3, A4, A5, A6], handler:(action:A1|A2|A3|A4|A5|A6)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7], handler:(action:A1|A2|A3|A4|A5|A6|A7)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[string, string, string, string, string, string, string, string, string], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    extendActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action:[A1, A2, A3, A4, A5, A6, A7, A8, A9], handler:(action:A1|A2|A3|A4|A5|A6|A7|A8|A9)=>void):void;
+    extendActionHandler<A extends Action>(action:string|Array<string>|Action|Array<Action>, handler:(action:Action)=>void):void {
+        (Array.isArray(action) ? action : [action]).forEach(
+            item => {
+                const name = typeof item === 'string' ? item : item.name;
+                if (this.actionMatch[name] === undefined) {
+                    throw new Error(`Cannot extend action handler - no existing handler for ${name}`);
+                }
+                const curr = this.actionMatch[name];
+                this.actionMatch[name] = (action:A) => {
+                    curr(action);
+                    handler(action);
                 }
             }
         );

@@ -78,18 +78,20 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * Log all (or all matching if handledOnly is true) actions
      * to console. This is for debugging purposes.
      */
-     DEBUG_logActions({handledOnly, payloadFilter, expandablePayload}:ModelActionLoggingArgs):void {
+     DEBUG_logActions(args?:ModelActionLoggingArgs):void {
+        const {handledOnly, payloadFilter, expandablePayload} = {
+            handledOnly: true, payloadFilter: undefined, expandablePayload: true, ... args};
         this._onActionMatch = (_, a:Action, m:boolean) => {
             if (m || !handledOnly) {
                 const aMod = _payloadFilter(a, payloadFilter);
                 if (expandablePayload) {
-                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\nerror:\n%c${aMod.error}`,
-                    'color: #ee6015', 'color: #00ee00', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
+                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\nerror: %c${aMod.error}`,
+                    'color: #ee6015', 'color: #33bb33', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
                     console.log(`payload${payloadFilter ? ' (filtered)' : ''}: `, JSON.parse(JSON.stringify(aMod.payload)));
 
                 } else {
-                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\npayload${payloadFilter ? ' (filtered)' : ''}:\n%c${JSON.stringify(aMod.payload, null, 2)}%c\nerror:\n%c${aMod.error}`,
-                    'color: #ee6015', 'color: #00ee00', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaaaaa', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
+                    console.log(`%c[kombo] %c\Action %c\--> model ${this.constructor.name} (${m ? 'handled' : 'unhandled'}) \n%cname: %c${aMod.name}%c\npayload${payloadFilter ? ' (filtered)' : ''}:\n%c${JSON.stringify(aMod.payload, null, 2)}%c\nerror: %c${aMod.error}`,
+                    'color: #ee6015', 'color: #33bb33', 'font-weight: bold', 'color: #aaa; font-weight: normal', 'font-weight: bold', 'color: #aaaaaa', 'color: #111111', 'color: #aaaaaa', 'color: #111111');
                 }
             }
         }
@@ -233,7 +235,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
 
     /**
      * Replaces possible existing action handler.
-     * This can be used e.g. when overriding an existing model.
+     * This can be used e.g. when extending an existing model (base class).
      */
     replaceActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
     replaceActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;

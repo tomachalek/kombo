@@ -111,7 +111,7 @@ export interface IModel<T> {
      * Log all (or all matching only if handledOnly is set to true) actions
      * to console. This is for debugging purposes.
      */
-    DEBUG_logActions(args:ModelActionLoggingArgs):void;
+    DEBUG_logActions(args?:ModelActionLoggingArgs):void;
 
 }
 
