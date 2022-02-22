@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Subscription, Observable, BehaviorSubject, Subject, asapScheduler  } from 'rxjs';
-import { startWith, scan, filter, share, observeOn } from 'rxjs/operators';
+import { scan, filter, share, observeOn, distinctUntilChanged } from 'rxjs/operators';
 import { IActionCapturer, IStatelessModel } from '../model/common';
 import { Action, SEDispatcher, AnyAction } from './common';
 import { StatefulModel } from '../model/stateful';
@@ -175,7 +175,6 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
 
         const state$ = new BehaviorSubject(initialState);
         const subscr = this.action$.pipe(
-            startWith(null),
             scan(
                 (state:T, action:Action<{}>) => {
                     if (action !== null) {
@@ -205,7 +204,8 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                     return state;
                 },
                 initialState
-            )
+            ),
+            distinctUntilChanged()
         ).subscribe(state$);
         return [state$, subscr];
     }
