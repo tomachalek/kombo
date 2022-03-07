@@ -189,7 +189,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                                         const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
                                         const errorResolved = payloadOrError instanceof Error ?
                                             payloadOrError :
-                                            error ? error : action.error;
+                                            error ? error : seAction.error;
                                         this.inAsync$.next({
                                             name: seAction.name,
                                             payload: {...seAction.payload, ...payload},
