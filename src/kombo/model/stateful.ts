@@ -22,6 +22,7 @@ import { IEventEmitter, Action, IStateChangeListener } from '../action/common';
 import { IFullActionControl } from '../action';
 
 
+
 /**
  * Stateful model allows impure model implementation where
  * 'state' is represented by whole model object. But Kombo still requires
@@ -30,7 +31,7 @@ import { IFullActionControl } from '../action';
  * via model's getters and prefer using 'Bound' wrapper component with
  * automatic mapping of state to properties.
  */
-export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>, ISuspendable<U> {
+export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>, ISuspendable {
 
     private change$:Subject<T>;
 
@@ -42,9 +43,9 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
 
     private actionMatch:{[actionName:string]:(action:Action)=>void};
 
-    private wakeFn:((action:Action, syncData:U)=>U|null)|null;
+    private wakeFn:((action:Action, syncData:unknown)=>unknown|null)|null;
 
-    private syncData:U|null;
+    private syncData:unknown;
 
     private wakeEvents$:Subject<Action>;
 
@@ -333,7 +334,7 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * is woken up again as otherwise it would be possible for a model to dispatch
      * actions.
      */
-    suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
             return throwError(() => new Error('The model is already suspended.'));
         }
@@ -361,7 +362,7 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * @param syncData
      * @param wakeFn
      */
-    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         return this.suspendWithTimeout(0, syncData, wakeFn);
     }
 

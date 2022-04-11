@@ -30,7 +30,7 @@ export interface IActionQueue {
     /**
      * Register stateless model to listen for incoming actions
      */
-    registerModel<T, U>(model:IStatelessModel<T, U>, initialState:T):[BehaviorSubject<T>, Subscription];
+    registerModel<T>(model:IStatelessModel<T>, initialState:T):[BehaviorSubject<T>, Subscription];
 
     /**
      * Before an action is triggered, run the 'capturer' function with
@@ -168,8 +168,8 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         });
     }
 
-    registerModel<T, U>(
-        model:IStatelessModel<T, U>,
+    registerModel<T>(
+        model:IStatelessModel<T>,
         initialState:T
     ):[BehaviorSubject<T>, Subscription] {
 
