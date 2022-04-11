@@ -31,15 +31,15 @@ import { IActionQueue } from '../action';
  * describes a synchronization value used along with methods
  * 'suspend(), suspendWithTimeout()'.
  */
-export abstract class StatelessModel<T extends object, U={}> implements IStatelessModel<T, U>, IModel<T> {
+export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
 
     private readonly state$:BehaviorSubject<T>;
 
     private readonly subscription:Subscription;
 
-    private wakeFn:((action:Action, syncData:U)=>U|null)|null;
+    private wakeFn:((action:Action, syncData:unknown)=>unknown|null)|null;
 
-    private syncData:U|null;
+    private syncData:unknown;
 
     private wakeEvents$:Subject<Action>;
 
@@ -312,7 +312,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * is woken up again as otherwise it would be possible for a model to dispatch
      * side-effects to itself while being still suspended.
      */
-    suspendWithTimeout(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
             return throwError(() => new Error('The model is already suspended.'));
         }
@@ -340,7 +340,7 @@ export abstract class StatelessModel<T extends object, U={}> implements IStatele
      * @param syncData
      * @param wakeFn
      */
-    suspend(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         return this.suspendWithTimeout(0, syncData, wakeFn);
     }
 
