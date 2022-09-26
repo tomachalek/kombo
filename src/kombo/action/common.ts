@@ -16,7 +16,10 @@
 import { Subscription } from 'rxjs';
 
 
-export interface Action<T extends {[key:string]:any}={}> {
+export type ActionPayload = {[key:string]:any};
+
+
+export interface Action<T extends ActionPayload={}> {
     name:string;
     payload?:T;
     error?:Error;
@@ -24,26 +27,26 @@ export interface Action<T extends {[key:string]:any}={}> {
 }
 
 
-export interface SideEffectAction<T> extends Action<T> {
+export interface SideEffectAction<T extends ActionPayload> extends Action<T> {
     isSideEffect:true;
 }
 
 
-export type AnyAction<T> = Action<T> | SideEffectAction<T>;
+export type AnyAction<T extends ActionPayload> = Action<T> | SideEffectAction<T>;
 
 
 /**
  * This is typically provided by a React component to react
  * to state changes.
  */
-export interface IStateChangeListener<T> {
+export interface IStateChangeListener<T extends {[key:string]:any}> {
     (state?:T):void;
 }
 
 /**
- * Flux-like (aka "stateful" here) model.
+ * A store-like behavior with changing state one can subscribe to
  */
-export interface IEventEmitter<T={}> {
+export interface IEventEmitter<T extends {[key:string]:any}={}> {
     addListener(callback:(state?:T)=>void):Subscription;
     emitChange():void;
 }
@@ -71,10 +74,10 @@ export interface ISideEffectHandler<T, U extends Action> {
  * A function to dispatch side effect of an action
  */
 export interface SEDispatcher {
-    <T extends Action>(seAction:T):void;
-    <T extends Action<U>, U>(seAction:T, error:Error):void;
-    <T extends Action<U>, U>(seAction:T, payload:U):void;
-    <T extends Action<U>, U>(seAction:T, payload:U, error:Error):void;
+    <T extends ActionPayload>(seAction:Action<T>):void;
+    <T extends ActionPayload>(seAction:Action<T>, error:Error):void;
+    <T extends ActionPayload>(seAction:Action<T>, payload:T):void;
+    <T extends ActionPayload>(seAction:Action<T>, payload:T, error:Error):void;
 }
 
 /**

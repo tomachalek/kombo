@@ -17,8 +17,8 @@
 import { Subject, Subscription, BehaviorSubject, Observable, throwError, of as rxOf, timer } from 'rxjs';
 import { concatMap, takeUntil, reduce, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
-import { IModel, ISuspendable, ModelActionLoggingArgs, _payloadFilter } from './common';
-import { IEventEmitter, Action, IStateChangeListener } from '../action/common';
+import { IModel, ISuspendable, ModelActionLoggingArgs, ModelState, _payloadFilter } from './common';
+import { IEventEmitter, Action, IStateChangeListener, ActionPayload } from '../action/common';
 import { IFullActionControl } from '../action';
 
 
@@ -31,7 +31,7 @@ import { IFullActionControl } from '../action';
  * via model's getters and prefer using 'Bound' wrapper component with
  * automatic mapping of state to properties.
  */
-export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>, ISuspendable {
+export abstract class StatefulModel<T extends ModelState> implements IEventEmitter, IModel<T>, ISuspendable {
 
     private change$:Subject<T>;
 
@@ -290,13 +290,16 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      * 2) action cannot be further chained with other actions
      *
      */
-    dispatchSideEffect<T extends Action>(action:T):void;
-    dispatchSideEffect<T extends Action>(action:T, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
+    dispatchSideEffect<T extends ActionPayload>(action:Action<T>):void;
+    dispatchSideEffect<T extends ActionPayload>(action:Action<T>, error:Error):void;
+    dispatchSideEffect<T extends ActionPayload>(action:Action<T>, payload:T):void;
+    dispatchSideEffect<T extends ActionPayload>(action:Action<T>, payload:T, error:Error):void;
+    dispatchSideEffect<T extends ActionPayload>(action:Action<T>, payloadOrError?:T|Error, error?:Error):void {
         if (error) {
-            this.dispatcher.dispatchSideEffect(action, payloadOrError, error);
+            this.dispatcher.dispatchSideEffect(action, payloadOrError as T, error);
+
+        } else if (payloadOrError === undefined) {
+            this.dispatcher.dispatchSideEffect(action);
 
         } else {
             this.dispatcher.dispatchSideEffect(action, payloadOrError);

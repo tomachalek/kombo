@@ -25,10 +25,12 @@ export interface ISuspendable {
     isActive():boolean;
 }
 
+export type ModelState = {[key:string]:any};
+
 /**
  * Stateless modes as viewed from the framework perspective
  */
-export interface IStatelessModel<T> extends ISuspendable {
+export interface IStatelessModel<T extends ModelState> extends ISuspendable {
     reduce:IReducer<T, Action>;
     sideEffects(state:T, action:Action, dispatch:SEDispatcher):void;
     isActive():boolean;
@@ -84,7 +86,7 @@ export function _payloadFilter(a:Action, filt:undefined|{[k:string]:boolean}):Ac
  * A general model implementation as viewed from
  * the perspective of a React component.
  */
-export interface IModel<T> {
+export interface IModel<T extends ModelState> {
 
     addListener(fn:IStateChangeListener<T>):Subscription;
 
