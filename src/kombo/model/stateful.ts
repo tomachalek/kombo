@@ -307,23 +307,23 @@ export abstract class StatefulModel<T extends ModelState> implements IEventEmitt
     }
 
     /**
-     * The suspend() method pauses the model right after the action currently
+     * The waitForActionWithTimeout() method pauses the model right after the action currently
      * processed (i.e. the model does handle further actions). Each time a subsequent
      * action occurs, wakeFn() is called with the action as the first argument
      * and the current syncData as the second argument. The method returns an
      * Observable producing actions we filter based on values wakeFn returns:
      *
      * 1) exactly the same sync. object it recieves (===) => the model keeps
-     *    being suspended and no action is send via returned stream (see return),
-     * 2) changed sync. object => the model keeps being suspended and the action
+     *    waiting and no action is send via returned stream (see return),
+     * 2) changed sync. object => the model keeps waiting and the action
      *    is send via the returned stream,
      * 3) null => the model wakes up and starts to handle actions and side-effects
      *    (including this action)
      *
      * Please note that to properly wake the model, the action it waits for must
-     * be run after the suspend call. In case this is based on user interaction or
+     * be run after the waitForAction call. In case this is based on user interaction or
      * some async event (AJAX), everything is OK by default. But in case of model
-     * synchronization (e.g. when other model provides data for the suspended one)
+     * synchronization (e.g. when other model provides data for the waiting one)
      * this requires the 'waking' action to be a model side-effect
      * (see StatefulModel.dispatchSideEffect()).
      *
@@ -337,9 +337,9 @@ export abstract class StatefulModel<T extends ModelState> implements IEventEmitt
      * is woken up again as otherwise it would be possible for a model to dispatch
      * actions.
      */
-    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    waitForActionWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
-            return throwError(() => new Error('The model is already suspended.'));
+            return throwError(() => new Error('The model is already waiting for an action.'));
         }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
@@ -348,30 +348,44 @@ export abstract class StatefulModel<T extends ModelState> implements IEventEmitt
             timeout > 0 ?
                 takeUntil(
                     timer(timeout).pipe(
-                        concatMap(v => throwError(() => new Error(`Model suspend timeout (${timeout}ms)`)))
+                        concatMap(v => throwError(() => new Error(`Model action waiting timeout (${timeout}ms)`)))
                     )
                 ) :
                 map(v => v),
             reduce<Action, Array<Action>>((acc, action) => acc.concat(action), []), // this produces kind of synchronization time point
-            concatMap(actions => rxOf(...actions)) // once suspend is done we can pass the values again
+            concatMap(actions => rxOf(...actions)) // once in the waiting state is done we can pass the values again
         );
     }
 
     /**
-     * The method is a variant of suspendWithTimeout() which can be used
+     * @deprecated the method has been renamed to *waitForActionWithTimeout*
+     */
+    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForActionWithTimeout(timeout, syncData, wakeFn);
+    }
+
+    /**
+     * The method is a variant of waitForActionWithTimeout() which can be used
      * in case its sure a waking action will occur. Otherwise the model
-     * will wait indefinitely in the suspended state.
+     * will wait indefinitely in the waiting state.
      *
      * @param syncData
      * @param wakeFn
      */
-    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
-        return this.suspendWithTimeout(0, syncData, wakeFn);
+    waitForAction<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForActionWithTimeout(0, syncData, wakeFn);
     }
 
     /**
-     * The method is used by Kombo to wake up suspended
-     * models. For a suspended model, it is called on each action
+     * @deprecated the method has been renamed to *waitForAction*
+     */
+    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForAction(syncData, wakeFn);
+    }
+
+    /**
+     * The method is used by Kombo to wake up action waiting
+     * models. For a waiting model, it is called on each action
      * which occurs from then until the model is woken up again.
      *
      * @param action
@@ -403,7 +417,7 @@ export abstract class StatefulModel<T extends ModelState> implements IEventEmitt
     }
 
     /**
-     * Return true if the model is not suspended at the moment.
+     * Return true if the model is not in the action waiting state at the moment.
      */
     isActive():boolean {
         return typeof this.wakeFn !== 'function';

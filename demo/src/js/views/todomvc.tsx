@@ -225,7 +225,9 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
                                     two asynchronous model actions. When generating a ticket, both <code>TodoModel</code>
                                     and <code>AdjectivesModel</code> react to the same action. To make them react
                                     in the right order and also pass some needed data between them, the <code>TodoModel</code>
-                                    will suspend and waits for an actions triggered by <code>AdjectiveModel</code>.
+                                    will set itself to waiting state where it stops reacting via its action handlers and
+                                    instead, it listens for a special stream of subsequent actions triggered by <code>AdjectiveModel</code>
+                                    (or possible by any other active model).
                                 </p> :
                                 null
                             }

@@ -102,7 +102,7 @@ export class TodoModel extends StatelessModel<TodoState> {
             },
             (state, action, dispatch) => {
                 (state.generateAdjectives ?
-                    this.suspendWithTimeout(2500, {}, (action, syncData) => {
+                    this.waitForActionWithTimeout(2500, {}, (action, syncData) => {
                         if (action.name === Actions.FetchAdjectivesDone.name) {
                             return null;
                         }

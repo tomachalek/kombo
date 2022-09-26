@@ -19,8 +19,8 @@ import { Action, IStateChangeListener, SEDispatcher, IReducer } from '../action/
 
 
 export interface ISuspendable {
-    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action>;
-    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action>;
+    waitForActionWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action>;
+    waitForAction<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action>;
     wakeUp(action:Action):void;
     isActive():boolean;
 }

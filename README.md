@@ -57,7 +57,7 @@ See Kombo in action:
   * one model -- one state object
   * many models -- one state object
   * many models -- many state objects (typically each model handles its state here),
-* synchronization of models using `suspend()` action where model can suspend itself until a specific
+* synchronization of models using `waitForAction()` action where model can suspend itself until a specific
   action is triggered and data obtained via a respective action payload
 
 ### Views
@@ -241,7 +241,7 @@ react to the same initial action ('PERFORM_QUERY'). it is possible
         state.isBusy = true;
     },
     (state, action, dispatch) => {
-        this.suspend({}, (action:Action, syncData) => { // from now, the function is called on each action
+        this.waitForAction({}, (action:Action, syncData) => { // from now, the function is called on each action
             if (action.name === 'QUERY_VALIDATION_DONE') { /* we wait for model B here */
                 return null; // by returning no synchronization data we say: "stop waiting"
             }

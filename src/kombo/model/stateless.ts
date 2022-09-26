@@ -17,7 +17,7 @@
 import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, throwError, timer } from 'rxjs';
 import { reduce, concatMap, takeUntil, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
-import { IStatelessModel, IModel, IActionHandlerModifier, ModelActionLoggingArgs, _payloadFilter } from './common';
+import { IStatelessModel, IModel, IActionHandlerModifier, ModelActionLoggingArgs, _payloadFilter, ModelState } from './common';
 import { Action, IReducer, ISideEffectHandler, SEDispatcher, INewStateReducer, IStateChangeListener } from '../action/common';
 import { IActionQueue } from '../action';
 
@@ -26,12 +26,8 @@ import { IActionQueue } from '../action';
  * hold its state T and it also cannot decide when the state
  * changes. It just provides reducers and side-effects for
  * dispatched actions.
- *
- * Type T represents a state the model handles. Type U (optional)
- * describes a synchronization value used along with methods
- * 'suspend(), suspendWithTimeout()'.
  */
-export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
+export abstract class StatelessModel<T extends ModelState> implements IStatelessModel<T>, IModel<T> {
 
     private readonly state$:BehaviorSubject<T>;
 
@@ -134,6 +130,9 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         const match = this.sideEffectMatch[action.name];
         if (match !== undefined) {
             match(state, action, dispatch);
+            if (!!this._onActionMatch) {
+                this._onActionMatch(state, action, !!match);
+            }
         }
     }
 
@@ -288,7 +287,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * The suspend() method pauses the model right after the action currently
+     * The waitForActionWithTimeout method pauses the model right after the action currently
      * processed (i.e. the model does not reduce its state based on further
      * actions nor produces any defined side-effects). Each time a subsequent
      * action occurs, wakeFn() is called with the action as the first argument
@@ -296,8 +295,8 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * Observable producing actions we filter based on values wakeFn returns:
      *
      * 1) exactly the same sync. object it recieves (===) => the model keeps
-     *    being suspended and no action is send via returned stream (see return),
-     * 2) changed sync. object => the model keeps being suspended and the action
+     *    waiting and no action is send via returned stream (see return),
+     * 2) changed sync. object => the model keeps waiting and the action
      *    is send via the returned stream,
      * 3) null => the model wakes up and starts to handle actions and side-effects
      *    (including this action)
@@ -310,11 +309,15 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * based on actions which were occuring during the waiting (sleeping) time.
      * Please note that the actions in the stream are delayed until the object
      * is woken up again as otherwise it would be possible for a model to dispatch
-     * side-effects to itself while being still suspended.
+     * side-effects to itself while being still in the action waiting state.
      */
-    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    waitForActionWithTimeout<U>(
+        timeout:number,
+        syncData:U,
+        wakeFn:(action:Action, syncData:U)=>U|null
+    ):Observable<Action> {
         if (this.wakeFn) {
-            return throwError(() => new Error('The model is already suspended.'));
+            return throwError(() => new Error('The model is already waiting for an action.'));
         }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
@@ -323,30 +326,49 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
             timeout > 0 ?
                 takeUntil(
                     timer(timeout).pipe(
-                        concatMap(v => throwError(() => new Error(`Model suspend timeout (${timeout}ms)`)))
+                        concatMap(v => throwError(() => new Error(`Model action waiting timeout (${timeout}ms)`)))
                     )
                 ) :
                 map(v => v),
             reduce<Action, Array<Action>>((acc, action) => acc.concat(action), []), // this produces kind of synchronization time point
-            concatMap(actions => rxOf(...actions)) // once suspend is done we can pass the values again
+            concatMap(actions => rxOf(...actions)) // once action waiting is done, we can pass the values again
         );
     }
 
     /**
-     * The method is a variant of suspendWithTimeout() which can be used
+     * @deprecated the method has been renamed to *waitForActionWithTimeout*
+     */
+    suspendWithTimeout<U>(
+        timeout:number,
+        syncData:U,
+        wakeFn:(action: Action<{}>, syncData: U) => U | null
+    ):Observable<Action<{}>> {
+
+        return this.waitForActionWithTimeout(timeout, syncData, wakeFn);
+    }
+
+    /**
+     * The method is a variant of waitForActionWithTimeout() which can be used
      * in case its sure a waking action will occur. Otherwise the model
-     * will wait indefinitely in the suspended state.
+     * will wait indefinitely in the action waiting state.
      *
      * @param syncData
      * @param wakeFn
      */
-    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
-        return this.suspendWithTimeout(0, syncData, wakeFn);
+    waitForAction<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForActionWithTimeout(0, syncData, wakeFn);
     }
 
     /**
-     * The method is used by Kombo to wake up suspended
-     * models. For a suspended model, it is called on each action
+     * @deprecated the method has been renamed to *waitForAction*
+     */
+    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForAction(syncData, wakeFn);
+    }
+
+    /**
+     * The method is used by Kombo to wake up action waiting
+     * models. For an action waiting model, it is called on each action
      * which occurs from then until the model is woken up again.
      *
      * @param action
@@ -378,7 +400,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * Return true if the model is not suspended at the moment.
+     * Return true if the model is not in the action waiting state at the moment.
      */
     isActive():boolean {
         return typeof this.wakeFn !== 'function';
@@ -390,7 +412,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * for the application logic there should be no need to
      * call this method explicitly (e.g. as a way to exchange
      * data between models). The models should communicate
-     * and synchronize themselves via actions and suspend/wake-up.
+     * and synchronize themselves via actions and waitForAction/wakeUp.
      *
      * Note: please note that in some cases, this may produce
      * initial state even if the actual state has been already
