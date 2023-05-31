@@ -314,7 +314,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
     }
 
     /**
-     * The suspend() method pauses the model right after the action currently
+     * The waitForActionWithTimeout() method pauses the model right after the action currently
      * processed (i.e. the model does handle further actions). Each time a subsequent
      * action occurs, wakeFn() is called with the action as the first argument
      * and the current syncData as the second argument. The method returns an
@@ -344,9 +344,9 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      * is woken up again as otherwise it would be possible for a model to dispatch
      * actions.
      */
-    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    waitForActionWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
-            return throwError(() => new Error('The model is already suspended.'));
+            return throwError(() => new Error('The model is already waiting for an action.'));
         }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
@@ -355,7 +355,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
             timeout > 0 ?
                 takeUntil(
                     timer(timeout).pipe(
-                        concatMap(v => throwError(() => new Error(`Model suspend timeout (${timeout}ms)`)))
+                        concatMap(v => throwError(() => new Error(`Model action waiting timeout (${timeout}ms)`)))
                     )
                 ) :
                 map(v => v),
@@ -365,15 +365,15 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
     }
 
     /**
-     * The method is a variant of suspendWithTimeout() which can be used
+     * The method is a variant of waitForActionWithTimeout() which can be used
      * in case its sure a waking action will occur. Otherwise the model
      * will wait indefinitely in the suspended state.
      *
      * @param syncData
      * @param wakeFn
      */
-    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
-        return this.suspendWithTimeout(0, syncData, wakeFn);
+    waitForAction<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForActionWithTimeout(0, syncData, wakeFn);
     }
 
     /**

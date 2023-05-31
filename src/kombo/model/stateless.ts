@@ -27,9 +27,7 @@ import { IActionQueue } from '../action';
  * changes. It just provides reducers and side-effects for
  * dispatched actions.
  *
- * Type T represents a state the model handles. Type U (optional)
- * describes a synchronization value used along with methods
- * 'suspend(), suspendWithTimeout()'.
+ * Type T represents a state the model handles.
  */
 export abstract class StatelessModel<T extends object> implements IStatelessModel<T>, IModel<T> {
 
@@ -304,7 +302,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * The suspend() method pauses the model right after the action currently
+     * The waitForActionWithTimeout() method pauses the model right after the action currently
      * processed (i.e. the model does not reduce its state based on further
      * actions nor produces any defined side-effects). Each time a subsequent
      * action occurs, wakeFn() is called with the action as the first argument
@@ -328,9 +326,9 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * is woken up again as otherwise it would be possible for a model to dispatch
      * side-effects to itself while being still suspended.
      */
-    suspendWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+    waitForActionWithTimeout<U>(timeout:number, syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
         if (this.wakeFn) {
-            return throwError(() => new Error('The model is already suspended.'));
+            return throwError(() => new Error('The model is already waiting for an action.'));
         }
         this.wakeFn = wakeFn;
         this.syncData = syncData;
@@ -339,7 +337,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
             timeout > 0 ?
                 takeUntil(
                     timer(timeout).pipe(
-                        concatMap(v => throwError(() => new Error(`Model suspend timeout (${timeout}ms)`)))
+                        concatMap(v => throwError(() => new Error(`Model action waiting (${timeout}ms)`)))
                     )
                 ) :
                 map(v => v),
@@ -349,15 +347,15 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * The method is a variant of suspendWithTimeout() which can be used
+     * The method is a variant of waitForActionWithTimeout() which can be used
      * in case its sure a waking action will occur. Otherwise the model
      * will wait indefinitely in the suspended state.
      *
      * @param syncData
      * @param wakeFn
      */
-    suspend<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
-        return this.suspendWithTimeout(0, syncData, wakeFn);
+    waitForAction<U>(syncData:U, wakeFn:(action:Action, syncData:U)=>U|null):Observable<Action> {
+        return this.waitForActionWithTimeout(0, syncData, wakeFn);
     }
 
     /**
@@ -406,7 +404,8 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * for the application logic there should be no need to
      * call this method explicitly (e.g. as a way to exchange
      * data between models). The models should communicate
-     * and synchronize themselves via actions and suspend/wake-up.
+     * and synchronize themselves via actions and
+     * waitForAction[withTimeout].
      *
      * Note: please note that in some cases, this may produce
      * initial state even if the actual state has been already
