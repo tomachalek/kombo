@@ -18,7 +18,7 @@ import { Subject, Subscription, BehaviorSubject, Observable, throwError, of as r
 import { concatMap, takeUntil, reduce, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
 import { IModel, ISuspendable, ModelActionLoggingArgs, _payloadFilter } from './common';
-import { IEventEmitter, Action, IStateChangeListener } from '../action/common';
+import { IEventEmitter, Action, IStateChangeListener, ActionPayload } from '../action/common';
 import { IFullActionControl } from '../action';
 
 
@@ -31,7 +31,7 @@ import { IFullActionControl } from '../action';
  * via model's getters and prefer using 'Bound' wrapper component with
  * automatic mapping of state to properties.
  */
-export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>, ISuspendable {
+export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, IModel<T>, ISuspendable {
 
     private change$:Subject<T>;
 
@@ -292,14 +292,24 @@ export abstract class StatefulModel<T, U={}> implements IEventEmitter, IModel<T>
      */
     dispatchSideEffect<T extends Action>(action:T):void;
     dispatchSideEffect<T extends Action>(action:T, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payload:U):void;
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payload:U, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
         if (error) {
-            this.dispatcher.dispatchSideEffect(action, payloadOrError, error);
+            if (payloadOrError instanceof Error) {
+                throw new Error('invalid argument ', payloadOrError);
+
+            } else {
+                this.dispatcher.dispatchSideEffect(action, payloadOrError, error);
+            }
 
         } else {
-            this.dispatcher.dispatchSideEffect(action, payloadOrError);
+            if (payloadOrError !== undefined) {
+                this.dispatcher.dispatchSideEffect(action, payloadOrError);
+
+            } else {
+                throw new Error('undefined argument for a payload or an error');
+            }
         }
     }
 
