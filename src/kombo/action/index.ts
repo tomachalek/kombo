@@ -16,7 +16,7 @@
 import { Subscription, Observable, BehaviorSubject, Subject, asapScheduler  } from 'rxjs';
 import { scan, filter, share, observeOn, distinctUntilChanged } from 'rxjs/operators';
 import { IActionCapturer, IStatelessModel } from '../model/common';
-import { Action, SEDispatcher, AnyAction } from './common';
+import { Action, SEDispatcher, AnyAction, ActionPayload } from './common';
 import { StatefulModel } from '../model/stateful';
 
 
@@ -49,9 +49,9 @@ export interface IActionQueue {
  */
 export interface IActionDispatcher extends IActionQueue {
     dispatch<T extends Action>(action:T):void;
-    dispatch<T extends Action<U>, U>(action:T, error:Error):void;
-    dispatch<T extends Action<U>, U>(action:T, payload:U):void;
-    dispatch<T extends Action<U>, U>(action:T, payload:U, error:Error):void;
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, error:Error):void;
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, payload:U):void;
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, payload:U, error:Error):void;
 }
 
 /**
@@ -61,14 +61,14 @@ export interface IActionDispatcher extends IActionQueue {
  */
 export interface IFullActionControl extends IActionDispatcher {
 
-    registerStatefulModel<T>(model:StatefulModel<T>):Subscription;
+    registerStatefulModel<T extends {}>(model:StatefulModel<T>):Subscription;
 
     registerActionListener(fn:(action:Action, dispatch:SEDispatcher)=>void):Subscription;
 
     dispatchSideEffect<T extends Action>(action:T):void;
     dispatchSideEffect<T extends Action>(action:T, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payload:U):void;
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payload:U|undefined, error:Error):void;
 }
 
 /**
@@ -114,10 +114,10 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
     }
 
     dispatch<T extends Action>(action:T):void;
-    dispatch<T extends Action<U>, U>(action:T, error:Error):void;
-    dispatch<T extends Action<U>, U>(action:T, payload:U):void;
-    dispatch<T extends Action<U>, U>(action:T, payload:U, error:Error):void;
-    dispatch<T extends Action<U>, U>(action:T, payloadOrError?:U|Error, error?:Error):void {
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, error:Error):void;
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, payload:U):void;
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, payload:U, error:Error):void;
+    dispatch<T extends Action<U>, U extends ActionPayload>(action:T, payloadOrError?:U|Error, error?:Error):void {
         const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
         const errorResolved = payloadOrError instanceof Error ?
             payloadOrError :
@@ -131,9 +131,9 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
 
     dispatchSideEffect<T extends Action>(action:T):void;
     dispatchSideEffect<T extends Action>(action:T, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payload:U, error:Error):void;
-    dispatchSideEffect<T extends Action<U>, U={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payload:U):void;
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payload:U, error:Error):void;
+    dispatchSideEffect<T extends Action<U>, U extends ActionPayload={}>(action:T, payloadOrError?:U|Error, error?:Error):void {
         const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
         const errorResolved = payloadOrError instanceof Error ?
             payloadOrError :
@@ -154,7 +154,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
         return this.action$.subscribe((a:Action) => fn(a, seAction => this.inAsync$.next(seAction)));
     }
 
-    registerStatefulModel<T>(model:StatefulModel<T>):Subscription {
+    registerStatefulModel<T extends {}>(model:StatefulModel<T>):Subscription {
         return this.action$.subscribe({
             next: action => {
                 model.wakeUp(action);
@@ -185,7 +185,7 @@ export class ActionDispatcher implements IActionDispatcher, IActionQueue, IFullA
                                 model.sideEffects(
                                     newState,
                                     action,
-                                    <T extends Action<U>, U={}>(seAction:T, payloadOrError?:U|Error, error?:Error) => {
+                                    <T extends Action<U>, U extends ActionPayload={}>(seAction:T, payloadOrError?:U|Error, error?:Error) => {
                                         const payload = payloadOrError instanceof Error ? undefined : payloadOrError;
                                         const errorResolved = payloadOrError instanceof Error ?
                                             payloadOrError :

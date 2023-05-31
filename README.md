@@ -17,13 +17,18 @@ See Kombo in action:
 
 ## Contents
 
-* [Key principles](#key_principles)
-* [Structure](#structure)
-  * [Stateless models](#stateless_models)
-  * [Stateful models](#stateful_models)
-  * [Model synchronization](#model_synchronization)
-  * [Views](#view_module)
-  * [Page initialization](#page_initialization)
+- [Kombo](#kombo)
+  - [Contents](#contents)
+  - [Key principles](#key-principles)
+    - [General](#general)
+    - [Models](#models)
+    - [Views](#views)
+  - [Structure](#structure)
+    - [Stateless models](#stateless-models)
+    - [Stateful models](#stateful-models)
+    - [Model synchronization](#model-synchronization)
+    - [View module](#view-module)
+    - [Page initialization](#page-initialization)
 
 <a name="key_principles"></a>
 ## Key principles
@@ -268,7 +273,7 @@ import {Bound, ActionDispatcher, ViewUtils} from 'kombo';
 
 export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel) {
 
-    const TodoText:React.SFC<{
+    const TodoText:React.FC<{
         text:string;
         id:number;
         complete:boolean;
@@ -291,7 +296,7 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils, model:TodoModel)
         </label>;
     };
 
-    class TodoTable:React.SFC<TodoTableProps> {
+    class TodoTable:React.FC<TodoTableProps> {
      // ....
     };
 

@@ -15,8 +15,10 @@
  */
 import { Subscription } from 'rxjs';
 
+export type ActionPayload = {[key:string]:any};
 
-export interface Action<T extends {[key:string]:any}={}> {
+
+export interface Action<T extends ActionPayload={}> {
     name:string;
     payload?:T;
     error?:Error;
@@ -24,12 +26,12 @@ export interface Action<T extends {[key:string]:any}={}> {
 }
 
 
-export interface SideEffectAction<T> extends Action<T> {
+export interface SideEffectAction<T extends ActionPayload={}> extends Action<T> {
     isSideEffect:true;
 }
 
 
-export type AnyAction<T> = Action<T> | SideEffectAction<T>;
+export type AnyAction<T extends ActionPayload> = Action<T> | SideEffectAction<T>;
 
 
 /**
@@ -43,7 +45,7 @@ export interface IStateChangeListener<T> {
 /**
  * Flux-like (aka "stateful" here) model.
  */
-export interface IEventEmitter<T={}> {
+export interface IEventEmitter<T extends {}> {
     addListener(callback:(state?:T)=>void):Subscription;
     emitChange():void;
 }
@@ -72,9 +74,9 @@ export interface ISideEffectHandler<T, U extends Action> {
  */
 export interface SEDispatcher {
     <T extends Action>(seAction:T):void;
-    <T extends Action<U>, U>(seAction:T, error:Error):void;
-    <T extends Action<U>, U>(seAction:T, payload:U):void;
-    <T extends Action<U>, U>(seAction:T, payload:U, error:Error):void;
+    <T extends Action<U>, U extends ActionPayload>(seAction:T, error:Error):void;
+    <T extends Action<U>, U extends ActionPayload>(seAction:T, payload:U):void;
+    <T extends Action<U>, U extends ActionPayload>(seAction:T, payload:U, error:Error):void;
 }
 
 /**
