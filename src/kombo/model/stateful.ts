@@ -313,7 +313,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
                 this.dispatcher.dispatchSideEffect(action, payloadOrError);
 
             } else {
-                throw new Error('undefined argument for a payload or an error');
+                this.dispatcher.dispatchSideEffect(action);
             }
         }
     }
