@@ -135,26 +135,34 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         }
     }
 
-    private createHandlerModifier(actionName:string) {
+    private createHandlerModifier(actionNames:Array<string>) {
         const modifier = {
             reduceAlsoOn: (...actions:Array<string>) => {
-                const reducer = this.actionMatch[actionName];
-                if (reducer === undefined) {
-                    throw new Error(`Cannot modify action handler - no reducer for action ${actionName}`);
-                }
-                actions.forEach(a => {
-                    this.actionMatch[a] = reducer;
-                });
+                actionNames.forEach(
+                    actionName => {
+                        const reducer = this.actionMatch[actionName];
+                        if (reducer === undefined) {
+                            throw new Error(`Cannot modify action handler - no reducer for action ${actionName}`);
+                        }
+                        actions.forEach(a => {
+                            this.actionMatch[a] = reducer;
+                        });
+                    }
+                );
                 return modifier;
             },
             sideEffectAlsoOn: (...actions:Array<string>) => {
-                const seProducer = this.sideEffectMatch[actionName];
-                if (seProducer === undefined) {
-                    throw new Error(`Cannot modify action handler - no side-effect producer for action ${actionName}`);
-                }
-                actions.forEach(a => {
-                    this.sideEffectMatch[a] = seProducer;
-                })
+                actionNames.forEach(
+                    actionName => {
+                        const seProducer = this.sideEffectMatch[actionName];
+                        if (seProducer === undefined) {
+                            throw new Error(`Cannot modify action handler - no side-effect producer for action ${actionName}`);
+                        }
+                        actions.forEach(a => {
+                            this.sideEffectMatch[a] = seProducer;
+                        });
+                    }
+                );
                 return modifier;
             }
         };
@@ -162,13 +170,13 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * Handle action with provided Immer-wrapped reducer (i.e. no need
+     * Handle action(s) with provided Immer-wrapped reducer (i.e. no need
      * to explicitly copy state and returning the state from the handler).
      * Optionally, produce also a side effect for the same action.
      *
-     * @param actionName
-     * @param reducer
-     * @param seHandler
+     * @param action action name or a prototype
+     * @param reducer function to reduce actual model state
+     * @param seHandler function to create a side-effect
      */
     addActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
     addActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
@@ -188,27 +196,35 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action: [A1, A2, A3, A4, A5, A6, A7, A8], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8>):IActionHandlerModifier;
     addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action: [string, string, string, string, string, string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>):IActionHandlerModifier;
     addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action: [A1, A2, A3, A4, A5, A6, A7, A8, A9], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>):IActionHandlerModifier;
-    addActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    addActionHandler<A extends Action>(action:string|Array<string>|Action|Array<Action>, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
-        const actionName = typeof action === 'string' ? action : action.name;
-        if (reducer) {
-            if (this.actionMatch[actionName] === undefined) {
-                this.actionMatch[actionName] = produce(reducer) as IReducer<T, A>;
+        (Array.isArray(action) ? action : [action]).forEach(
+            item => {
+                const actionName = typeof item === 'string' ? item : item.name;
+                if (reducer) {
+                    if (this.actionMatch[actionName] === undefined) {
+                        this.actionMatch[actionName] = produce(reducer) as IReducer<T, A>;
 
-            } else {
-                throw new Error(`Reducer for [${actionName}] already defined.`);
-            }
-        }
-        if (seProducer) {
-            if (this.sideEffectMatch[actionName] === undefined) {
-                this.sideEffectMatch[actionName] = seProducer;
+                    } else {
+                        throw new Error(`Reducer for [${actionName}] already defined.`);
+                    }
+                }
+                if (seProducer) {
+                    if (this.sideEffectMatch[actionName] === undefined) {
+                        this.sideEffectMatch[actionName] = seProducer;
 
-            } else {
-                throw new Error(`Side-effect producer for [${actionName}] already defined.`);
+                    } else {
+                        throw new Error(`Side-effect producer for [${actionName}] already defined.`);
+                    }
+                }
             }
-        }
-        return this.createHandlerModifier(actionName);
+        );
+        return this.createHandlerModifier(
+            (Array.isArray(action) ? action : [action]).map(
+                item => typeof item === 'string' ? item : item.name
+            )
+        );
     }
 
     /**
@@ -244,7 +260,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
                 throw new Error(`Side-effect producer for [${actionName}] already defined.`);
             }
         }
-        return this.createHandlerModifier(actionName);
+        return this.createHandlerModifier([actionName]);
     }
 
     /**
@@ -285,7 +301,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
                 seProducer(state, action, dispatch);
             }
         }
-        return this.createHandlerModifier(actionName);
+        return this.createHandlerModifier([actionName]);
     }
 
     /**
