@@ -133,6 +133,11 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
         }
     }
 
+    /**
+     * Define a handler for action(s). The handler may
+     * contain any number of isolated state changes (this.changeState())
+     * where each change triggers update in registered React components.
+     */
     addActionHandler<A extends Action>(action:string, handler:(action:A)=>void):void;
     addActionHandler<A extends Action>(action:A, handler:(action:A)=>void):void;
     addActionHandler<A1 extends Action, A2 extends Action>(action:[string, string], handler:(action:A1|A2)=>void):void;
@@ -308,7 +313,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
                 this.dispatcher.dispatchSideEffect(action, payloadOrError);
 
             } else {
-                throw new Error('undefined argument for a payload or an error');
+                this.dispatcher.dispatchSideEffect(action);
             }
         }
     }
