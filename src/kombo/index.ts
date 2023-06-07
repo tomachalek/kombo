@@ -16,12 +16,13 @@
 
 export type {
         Action,
-        SEDispatcher,
-        SideEffectAction,
-        IStateChangeListener,
+        ExtractPayload,
         IEventEmitter,
+        INewStateReducer,
         IReducer,
-        INewStateReducer
+        IStateChangeListener,
+        SEDispatcher,
+        SideEffectAction
 } from './action/common';
 
 export type {
