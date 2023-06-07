@@ -25,6 +25,14 @@ export interface Action<T extends ActionPayload={}> {
     isSideEffect?:boolean;
 }
 
+/**
+ * ExtractPayload allows referring a (possibly anonymous)
+ * type of a specific payload as it would have a name.
+ * This makes the writing of actions more convenient as
+ * one does not have to define separate types for payloads.
+ */
+export type ExtractPayload<A> = A extends Action<infer T> ? T : never;
+
 
 export interface SideEffectAction<T extends ActionPayload={}> extends Action<T> {
     isSideEffect:true;
