@@ -115,8 +115,8 @@ export function init(dispatcher:ActionDispatcher, ut:ViewUtils<{}>, todoModel:To
                 <em>{props.idx + 1}. {ut.formatDate(new Date(props.id), 1)}</em>
             </dt>
             <dd>
-                <TodoCheckbox id={props.id} checked={props.complete} />
                 <TodoText {...props} />
+                <TodoCheckbox id={props.id} checked={props.complete} />
                 <ActIcon id={props.id} complete={props.complete} />
             </dd>
         </>;

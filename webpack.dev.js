@@ -72,8 +72,12 @@ export default {
                             parser: {
                                 syntax: 'typescript',
                                 tsx: true,
-                                decorators: false,
-                                dynamicImport: false
+                                decorators: true,
+                                dynamicImport: false,
+                                decoratorsBeforeExport: false
+                            },
+                            transform: {
+                                decoratorVersion: "2022-03"
                             },
                             target: 'es2016'
                         }

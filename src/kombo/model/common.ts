@@ -16,6 +16,8 @@
 
 import { Subscription, Observable } from 'rxjs';
 import { Action, IStateChangeListener, SEDispatcher, IReducer } from '../action/common';
+import { StatelessModel } from './stateless';
+import { StatefulModel } from './stateful';
 
 
 export interface ISuspendable {
@@ -115,3 +117,12 @@ export interface IModel<T> {
 
 }
 
+
+export type DecoratorFn = (originalMethod:any, context:ClassMethodDecoratorContext)=>void;
+
+
+export type MultipleActions<T extends readonly unknown[]> = {
+    [K in keyof T]: T[K] extends Action|string ? T[K] : never
+}
+
+export type UnionFromTuple<T> = T extends Array<any> ? T[number] : never;

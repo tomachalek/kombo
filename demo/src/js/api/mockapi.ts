@@ -23,9 +23,9 @@ export interface ServerTask {
 
 export class TaskAPI {
 
-    private verbs = ['wash', 'sell', 'buy', 'fix', 'upgrade'];
+    private verbs = ['wash', 'sell', 'buy', 'fix', 'upgrade', 'donate', 'build'];
 
-    private objects = ['dishes', 'TV', 'windows', 'stereo', 'books', 'records'];
+    private objects = ['dishes', 'TV', 'windows', 'stereo', 'books', 'records', 'computer', 'boiler'];
 
     private randomVerb():string {
         return this.verbs[Math.round(Math.random() * (this.verbs.length - 1))];
@@ -40,7 +40,7 @@ export class TaskAPI {
     }
 
     fetchData():Observable<ServerTask> {
-        return Observable.create(observer => {
+        return new Observable(observer => {
             window.setTimeout(
                 () => {
                     const ans:Array<ServerTask> = [];
@@ -63,7 +63,7 @@ export class AdjectivesAPI {
 
     private adjectives = [
         'gently', 'crudely', 'slowly', 'dangerously', 'artfully', 'poorly', 'perfectly',
-        'professionally', 'mysteriously', 'awkwardly'];
+        'professionally', 'mysteriously', 'awkwardly', 'superfluously', 'roughly'];
 
     private randomAdjective():string {
         return this.adjectives[Math.round(Math.random() * (this.adjectives.length - 1))];

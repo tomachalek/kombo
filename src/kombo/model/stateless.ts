@@ -17,7 +17,7 @@
 import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, throwError, timer } from 'rxjs';
 import { reduce, concatMap, takeUntil, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
-import { IStatelessModel, IModel, IActionHandlerModifier, ModelActionLoggingArgs, _payloadFilter } from './common';
+import { IStatelessModel, IModel, IActionHandlerModifier, ModelActionLoggingArgs, _payloadFilter, MultipleActions, UnionFromTuple, DecoratorFn } from './common';
 import { Action, IReducer, ISideEffectHandler, SEDispatcher, INewStateReducer, IStateChangeListener } from '../action/common';
 import { IActionQueue } from '../action';
 
@@ -73,10 +73,10 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
     }
 
     /**
-     * Log all (or all matching if handledOnly is true) actions
+     * Log all (or all matching if `handledOnly` is true) actions
      * to console. This is for debugging purposes.
      */
-     DEBUG_logActions(args?:ModelActionLoggingArgs):void {
+    DEBUG_logActions(args?:ModelActionLoggingArgs):void {
         const {handledOnly, payloadFilter, expandablePayload} = {
             handledOnly: true, payloadFilter: undefined, expandablePayload: true, ... args};
         this._onActionMatch = (_, a:Action, m:boolean) => {
@@ -169,6 +169,31 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         return modifier;
     }
 
+    addActionHandler<A extends Action>(
+        action:A|string,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
+        const actionName = typeof action === 'string' ? action : action.name;
+        if (reducer) {
+            if (this.actionMatch[actionName] === undefined) {
+                this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
+
+            } else {
+                throw new Error(`Reducer for [${actionName}] already defined.`);
+            }
+        }
+        if (seProducer) {
+            if (this.sideEffectMatch[actionName] === undefined) {
+                this.sideEffectMatch[actionName] = seProducer;
+
+            } else {
+                throw new Error(`Side-effect producer for [${actionName}] already defined.`);
+            }
+        }
+        return this.createHandlerModifier([actionName]);
+    }
+
     /**
      * Handle action(s) with provided Immer-wrapped reducer (i.e. no need
      * to explicitly copy state and returning the state from the handler).
@@ -178,33 +203,19 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * @param reducer function to reduce actual model state
      * @param seHandler function to create a side-effect
      */
-    addActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
-    addActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action>(action: [string, string], reducer:INewStateReducer<T, A1|A2>|null, seProducer?:ISideEffectHandler<T, A1|A2>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action>(action: [A1, A2], reducer:INewStateReducer<T, A1|A2>|null, seProducer?:ISideEffectHandler<T, A1|A2>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action: [string, string, string], reducer:INewStateReducer<T, A1|A2|A3>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action>(action: [A1, A2, A3], reducer:INewStateReducer<T, A1|A2|A3>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action: [string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action>(action: [A1, A2, A3, A4], reducer:INewStateReducer<T, A1|A2|A3|A4>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action: [string, string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4|A5>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action>(action: [A1, A2, A3, A4, A5], reducer:INewStateReducer<T, A1|A2|A3|A4|A5>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action: [string, string, string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action>(action: [A1, A2, A3, A4, A5, A6], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action: [string, string, string, string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action>(action: [A1, A2, A3, A4, A5, A6, A7], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action: [string, string, string, string, string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action>(action: [A1, A2, A3, A4, A5, A6, A7, A8], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action: [string, string, string, string, string, string, string, string, string], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>):IActionHandlerModifier;
-    addActionHandler<A1 extends Action, A2 extends Action, A3 extends Action, A4 extends Action, A5 extends Action, A6 extends Action, A7 extends Action, A8 extends Action, A9 extends Action>(action: [A1, A2, A3, A4, A5, A6, A7, A8, A9], reducer:INewStateReducer<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>|null, seProducer?:ISideEffectHandler<T, A1|A2|A3|A4|A5|A6|A7|A8|A9>):IActionHandlerModifier;
-    addActionHandler<A extends Action>(action:string|Array<string>|Action|Array<Action>, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    addMultiActionHandler<A extends Array<Action>>(
+        actions:MultipleActions<A>,
+        reducer:INewStateReducer<T, UnionFromTuple<MultipleActions<A>>>|null,
+        seProducer?:ISideEffectHandler<T, UnionFromTuple<MultipleActions<A>>>
+    ):IActionHandlerModifier {
         // Here we cheat a bit with types to avoid Immutable<T> type from Immer.
         // Maybe in later versions of Kombo we can force the state type to be Immutable application-wide.
-        (Array.isArray(action) ? action : [action]).forEach(
+        actions.forEach(
             item => {
                 const actionName = typeof item === 'string' ? item : item.name;
                 if (reducer) {
                     if (this.actionMatch[actionName] === undefined) {
-                        this.actionMatch[actionName] = produce(reducer) as IReducer<T, A>;
+                        this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
 
                     } else {
                         throw new Error(`Reducer for [${actionName}] already defined.`);
@@ -221,7 +232,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
             }
         );
         return this.createHandlerModifier(
-            (Array.isArray(action) ? action : [action]).map(
+            actions.map(
                 item => typeof item === 'string' ? item : item.name
             )
         );
@@ -236,9 +247,12 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * model are running and each model wants to listen to just a subset
      * of actions.
      */
-    addActionSubtypeHandler<A extends Action>(action:string, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
-    addActionSubtypeHandler<A extends Action>(action:A, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
-    addActionSubtypeHandler<A extends Action>(action:string|A, match:(action:A)=>boolean, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    addActionSubtypeHandler<A extends Action>(
+        action:string|A,
+        match:(action:A)=>boolean,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
         const actionName = typeof action === 'string' ? action : action.name;
         if (reducer) {
             if (this.actionMatch[actionName] === undefined) {
@@ -267,8 +281,6 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * Replaces possible existing action handler.
      * This can be used e.g. when extending an existing model (base class).
      */
-    replaceActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
-    replaceActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
     replaceActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
         const actionName = typeof action === 'string' ? action : action.name;
         delete this.actionMatch[actionName];
@@ -281,10 +293,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * registered reduce operation will be performed.
      * This can be used e.g. when extending an existing model.
      */
-    extendActionHandler<A extends Action>(action:string, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
-    extendActionHandler<A extends Action>(action:A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier;
     extendActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
-
         const actionName = typeof action === 'string' ? action : action.name;
         const currReducer = this.actionMatch[actionName] || ((state:T, action:A) => state);
         this.actionMatch[actionName] = (state:T, action:A) => {

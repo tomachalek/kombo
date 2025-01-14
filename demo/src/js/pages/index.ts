@@ -24,8 +24,8 @@ import { AdjectivesModel } from '../models/adjectives';
 
 import { TaskAPI, AdjectivesAPI } from '../api/mockapi';
 
-declare var require:any;
-require('../../css/style.css');
+
+import '../../css/style.css';
 
 class IndexPage {
 

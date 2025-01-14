@@ -44,8 +44,9 @@ export class TodoModel extends StatelessModel<TodoState> {
     constructor(dispatcher:ActionDispatcher, serverApi:TaskAPI, initState:TodoState) {
         super(dispatcher, initState);
         this.serverApi = serverApi;
-        this.addActionHandler<typeof Actions.AddTodo>(
-            Actions.AddTodo.name,
+
+        this.addActionHandler(
+            Actions.AddTodo,
             (state, action) => {
                 state.items = [...state.items, {
                     id: new Date().getTime(),
@@ -54,8 +55,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }]
             }
         );
-        this.addActionHandler<typeof Actions.SetTextTodo>(
-            Actions.SetTextTodo.name,
+        this.addActionHandler(
+            Actions.SetTextTodo,
             (state, action) => {
                 const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
@@ -70,8 +71,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
         );
-        this.addActionHandler<typeof Actions.DeleteTodo>(
-            Actions.DeleteTodo.name,
+        this.addActionHandler(
+            Actions.DeleteTodo,
             (state, action) => {
                 const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
@@ -79,8 +80,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
         );
-        this.addActionHandler<typeof Actions.ToggleTodo>(
-            Actions.ToggleTodo.name,
+        this.addActionHandler(
+            Actions.ToggleTodo,
             (state, action) => {
                 const srch = state.items.findIndex(x => x.id === action.payload['id']);
                 if (srch > -1) {
@@ -95,8 +96,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
         );
-        this.addActionHandler<typeof Actions.FetchTodos>(
-            Actions.FetchTodos.name,
+        this.addActionHandler(
+            Actions.FetchTodos,
             (state, action) => {
                 state.isBusy = true;
             },
@@ -137,8 +138,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 });
             }
         );
-        this.addActionHandler<typeof Actions.FetchTodosDone>(
-            Actions.FetchTodosDone.name,
+        this.addActionHandler(
+            Actions.FetchTodosDone,
             (state, action) => {
                 state.isBusy = false;
                 if (action.error) {
@@ -153,8 +154,8 @@ export class TodoModel extends StatelessModel<TodoState> {
                 }
             }
         );
-        this.addActionHandler<typeof Actions.ToggleAddAdjectives>(
-            Actions.ToggleAddAdjectives.name,
+        this.addActionHandler(
+            Actions.ToggleAddAdjectives,
             (state, action) => {
                 state.generateAdjectives = !state.generateAdjectives;
             }

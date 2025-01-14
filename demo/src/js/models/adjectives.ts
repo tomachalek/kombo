@@ -34,15 +34,15 @@ export class AdjectivesModel extends StatelessModel<AdjectivesModelState> {
         super(dispatcher, initState);
         this.api = api;
 
-        this.addActionHandler<typeof Actions.ToggleAddAdjectives>(
-            Actions.ToggleAddAdjectives.name,
+        this.addActionHandler(
+            Actions.ToggleAddAdjectives,
             (state, action) => {
                 state.isActive = !state.isActive;
             }
         );
 
-        this.addActionHandler<typeof Actions.FetchAdjectivesDone>(
-            Actions.FetchAdjectivesDone.name,
+        this.addActionHandler(
+            Actions.FetchAdjectivesDone,
             (state, action) => {
                 state.isBusy = false;
             }
@@ -71,8 +71,8 @@ export class AdjectivesModel extends StatelessModel<AdjectivesModelState> {
             }
         );
 
-        this.addActionHandler<typeof Actions.ToggleAdjectivesHelp>(
-            Actions.ToggleAdjectivesHelp.name,
+        this.addActionHandler(
+            Actions.ToggleAdjectivesHelp,
             (state, action) => {
                 state.isHelpVisible = !state.isHelpVisible;
             }
