@@ -177,8 +177,8 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      */
     addActionSubtypeHandler<A extends Action>(
         action:A|string,
-        handler:(action:A)=>void,
-        match:(action:A)=>boolean
+        match:(action:A)=>boolean,
+        handler:(action:A)=>void
     ):void {
 
         const name = typeof action === 'string' ? action : action.name;
@@ -200,8 +200,8 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      */
     addMultiActionSubtypeHandler<A extends Array<Action>>(
         actions:MultipleActions<A>,
-        handler:(action:UnionFromTuple<MultipleActions<A>>)=>void,
-        match:(action:UnionFromTuple<MultipleActions<A>>)=>boolean
+        match:(action:UnionFromTuple<MultipleActions<A>>)=>boolean,
+        handler:(action:UnionFromTuple<MultipleActions<A>>)=>void
     ):void {
         actions.forEach(
             item => {
