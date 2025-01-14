@@ -1,9 +1,13 @@
-const path = require('path');
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-const mkpath = (p) => path.resolve(__dirname, 'demo/src/js', p);
-const mkDistpath = (p) => path.resolve(__dirname, 'demo/dist', p);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-module.exports = {
+const mkpath = (p) => resolve(__dirname, 'demo/src/js', p);
+const mkDistpath = (p) => resolve(__dirname, 'demo/dist', p);
+
+export default {
     entry: {
         index: mkpath('pages/index.ts')
     },
@@ -15,7 +19,7 @@ module.exports = {
     },
     resolve: {
         alias: {
-            'kombo': path.resolve(__dirname, 'src/kombo'),
+            'kombo': resolve(__dirname, 'src/kombo'),
             'vendor/intl-messageformat': mkpath('../../../src/vendor/intl-messageformat')
         },
         modules: [

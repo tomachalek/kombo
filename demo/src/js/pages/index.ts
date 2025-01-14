@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import { ActionDispatcher, ViewUtils} from 'kombo';
 import { init as viewInit} from '../views/todomvc';
@@ -70,10 +70,8 @@ class IndexPage {
             translations: this.translations
         });
         const component = viewInit(dispatcher, viewUtils, todoModel, adjModel);
-        ReactDOM.render(
-            React.createElement(component.TodoWidget, {version: '2020-04-03'}),
-            document.getElementById('root-mount')
-        );
+        const root = createRoot(document.getElementById('root-mount'));
+        root.render(React.createElement(component.TodoWidget, {version: '2020-04-03'}));
     }
 
 }

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import alias from 'rollup-plugin-alias';
-import { terser } from 'rollup-plugin-terser';
+import alias from '@rollup/plugin-alias';
+import terser from '@rollup/plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
 import esbuild from 'rollup-plugin-esbuild';
 import dts from 'rollup-plugin-dts';
-import pkg from './package.json';
+import { readFileSync } from 'fs';
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 import * as path from 'path';
 
 
