@@ -137,7 +137,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      * Add a handler for a specific action
      */
     addActionHandler<A extends Action>(
-        action:Action|string,
+        action:A|string,
         handler:(action:A)=>void
     ):void {
         const name = typeof action === 'string' ? action : action.name;
@@ -176,7 +176,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      * for the obtained action.
      */
     addActionSubtypeHandler<A extends Action>(
-        action:Action|string,
+        action:A|string,
         handler:(action:A)=>void,
         match:(action:A)=>boolean
     ):void {
@@ -225,7 +225,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      * In case there is no existing handler for the action, the function behaves
      * just like addActionHandler.
     */
-    replaceActionHandler(action:Action|string, handler:(action:Action)=>void):void {
+    replaceActionHandler<A extends Action>(action:A|string, handler:(action:Action)=>void):void {
         const name = typeof action === 'string' ? action : action.name;
         this.actionMatch[name] = handler;
     }
@@ -236,7 +236,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      */
     replaceMultiActionHandler<A extends Array<Action>>(
         actions:MultipleActions<A>,
-        handler:(action:Action)=>void
+        handler:(action:UnionFromTuple<MultipleActions<A>>)=>void
     ):void {
         actions.forEach(
             item => {
@@ -252,7 +252,7 @@ export abstract class StatefulModel<T extends {}> implements IEventEmitter<T>, I
      * This additional handler is called after the original handler finishes.
      * In case there is no existing handler for the action, the function throws an error.
      */
-    extendActionHandler<A extends Action>(action:A|string, handler:(action:Action)=>void):void {
+    extendActionHandler<A extends Action>(action:A|string, handler:(action:A)=>void):void {
         (Array.isArray(action) ? action : [action]).forEach(
             item => {
                 const name = typeof item === 'string' ? item : item.name;

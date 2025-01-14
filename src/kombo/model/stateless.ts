@@ -177,7 +177,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
         const actionName = typeof action === 'string' ? action : action.name;
         if (reducer) {
             if (this.actionMatch[actionName] === undefined) {
-                this.actionMatch[actionName] = produce(reducer) as IReducer<T, Action>;
+                this.actionMatch[actionName] = produce(reducer) as IReducer<T, A>;
 
             } else {
                 throw new Error(`Reducer for [${actionName}] already defined.`);
@@ -281,7 +281,11 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * Replaces possible existing action handler.
      * This can be used e.g. when extending an existing model (base class).
      */
-    replaceActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    replaceActionHandler<A extends Action>(
+        action:string|A,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
         const actionName = typeof action === 'string' ? action : action.name;
         delete this.actionMatch[actionName];
         delete this.sideEffectMatch[actionName];
@@ -293,7 +297,11 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
      * registered reduce operation will be performed.
      * This can be used e.g. when extending an existing model.
      */
-    extendActionHandler<A extends Action>(action:string|A, reducer:INewStateReducer<T, A>|null, seProducer?:ISideEffectHandler<T, A>):IActionHandlerModifier {
+    extendActionHandler<A extends Action>(
+        action:string|A,
+        reducer:INewStateReducer<T, A>|null,
+        seProducer?:ISideEffectHandler<T, A>
+    ):IActionHandlerModifier {
         const actionName = typeof action === 'string' ? action : action.name;
         const currReducer = this.actionMatch[actionName] || ((state:T, action:A) => state);
         this.actionMatch[actionName] = (state:T, action:A) => {
@@ -303,7 +311,7 @@ export abstract class StatelessModel<T extends object> implements IStatelessMode
             }
             return tmp;
         };
-        const currSEProducer = this.sideEffectMatch[actionName] || ((state:T, action:Action, dispatch:SEDispatcher)=>undefined);
+        const currSEProducer = this.sideEffectMatch[actionName] || ((state:T, action:A, dispatch:SEDispatcher)=>undefined);
         this.sideEffectMatch[actionName] = (state:T, action:A, dispatch:SEDispatcher) => {
             currSEProducer(state, action, dispatch);
             if (seProducer) {
