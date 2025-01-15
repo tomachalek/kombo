@@ -15,7 +15,7 @@
  */
 import { Subscription } from 'rxjs';
 import * as React from 'react';
-import { IModel } from '../model/common';
+import { IModel } from '../model/common.js';
 
 /**
  * Bound is a component wrapper mapping a state handled by a IModel

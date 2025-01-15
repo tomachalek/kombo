@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { ITranslator } from '../l10n';
-import IntlMessageFormat from '../../vendor/intl-messageformat';
+import { ITranslator } from '../l10n.js';
+import IntlMessageFormat from '../../vendor/intl-messageformat.js';
 
 
 export type TranslationTable = {[key:string]:string};

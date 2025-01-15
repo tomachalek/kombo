@@ -17,9 +17,9 @@
 import { Subject, Subscription, BehaviorSubject, Observable, throwError, of as rxOf, timer } from 'rxjs';
 import { concatMap, takeUntil, reduce, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
-import { DecoratorFn, IModel, ISuspendable, ModelActionLoggingArgs, MultipleActions, UnionFromTuple, _payloadFilter } from './common';
-import { IEventEmitter, Action, IStateChangeListener, ActionPayload } from '../action/common';
-import { IFullActionControl } from '../action';
+import { IModel, ISuspendable, ModelActionLoggingArgs, MultipleActions, UnionFromTuple, _payloadFilter } from './common.js';
+import { IEventEmitter, Action, IStateChangeListener, ActionPayload } from '../action/common.js';
+import { IFullActionControl } from '../action/index.js';
 
 
 

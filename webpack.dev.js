@@ -19,13 +19,14 @@ export default {
     },
     resolve: {
         alias: {
-            'kombo': resolve(__dirname, 'src/kombo'),
+            'kombo': resolve(__dirname, 'dist-es6/kombo.js'),
             'vendor/intl-messageformat': mkpath('../../../src/vendor/intl-messageformat')
         },
         modules: [
-            'node_modules'
+            'node_modules',
+            resolve(__dirname, 'src')
         ],
-        extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.jsx', '.js', '.json', '.css', '.less']
+        extensions: ['.ts', '.tsx', '.js', '.jsx', '.json']
     },
     module: {
         rules: [

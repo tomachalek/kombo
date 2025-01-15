@@ -27,10 +27,17 @@ import * as path from 'path';
 export default [
 	{
 		input: 'src/kombo/index.ts',
-		output: {
-			name: 'kombo',
-			file: pkg.browser,
-			format: 'umd'
+        output: {
+            name: 'kombo',
+            file: 'dist-umd/kombo.js',
+            format: 'umd',
+            exports: 'named',
+            globals: {
+                'react': 'React',
+                'react-dom': 'ReactDOM',
+                'rxjs': 'rxjs',
+                'immer': 'immer'
+            }
         },
         external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
 		plugins: [
@@ -49,9 +56,16 @@ export default [
 	{
         input: 'src/kombo/index.ts',
         output: [
-			{ file: pkg.main, format: 'cjs' },
-			{ file: pkg.module, format: 'es' }
-		],
+            {
+                file: 'dist/kombo.cjs',
+                format: 'cjs',
+                exports: 'named'
+            },
+            {
+                file: 'dist-es6/kombo.js',
+                format: 'es'
+            }
+        ],
         external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
 		plugins: [
             esbuild({

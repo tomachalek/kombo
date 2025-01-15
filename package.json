@@ -1,12 +1,25 @@
 {
   "name": "kombo",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "type": "module",
+  "main": "dist/kombo.cjs",
+  "module": "dist-es6/kombo.js",
+  "jsnext:main": "dist-es6/kombo.js",
+  "browser": "dist-umd/kombo.js",
+  "types": "dist-es6/kombo.d.ts",
   "author": {
     "name": "Tomas Machalek"
   },
   "bugs": {
     "url": "https://github.com/tomachalek/kombo/issues"
+  },
+  "exports" : {
+    ".": {
+      "types": "./dist-es6/kombo.d.ts",
+      "import": "./dist-es6/kombo.js",
+      "require": "./dist/kombo.cjs",
+      "default": "./dist-es6/kombo.js"
+    }
   },
   "dependencies": {
     "immer": "^10.1.1"
@@ -54,11 +67,6 @@
     "state management"
   ],
   "license": "Apache-2.0",
-  "main": "dist/kombo.js",
-  "module": "dist-es6/kombo.js",
-  "jsnext:main": "dist-es6/kombo.js",
-  "browser": "dist-umd/kombo.js",
-  "types": "dist-es6/kombo.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tomachalek/kombo.git"

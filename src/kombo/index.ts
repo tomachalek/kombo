@@ -23,40 +23,40 @@ export type {
         IStateChangeListener,
         SEDispatcher,
         SideEffectAction
-} from './action/common';
+} from './action/common.js';
 
 export type {
         IActionDispatcher,
         IActionQueue,
         IFullActionControl
-} from './action/index';
+} from './action/index.js';
 
-export { ActionDispatcher } from './action/index';
+export { ActionDispatcher } from './action/index.js';
 
 export {
         Bound,
         BoundWithProps
-} from './components/index';
+} from './components/index.js';
 
 export type {
         ITranslator
-} from './l10n';
+} from './l10n.js';
 
 export {
         ViewUtils
-} from './components/util';
+} from './components/util.js';
 
 export type {
         IModel,
         IActionCapturer,
         IActionHandlerModifier,
         IStatelessModel
-} from './model/common';
+} from './model/common.js';
 
-export { StatefulModel } from './model/stateful';
+export { StatefulModel } from './model/stateful.js';
 
-export { StatelessModel } from './model/stateless';
+export { StatelessModel } from './model/stateless.js';
 
 export {
         URLArgs
-} from './page';
+} from './page.js';

@@ -15,9 +15,9 @@
  */
 import { Subscription, Observable, BehaviorSubject, Subject, asapScheduler  } from 'rxjs';
 import { scan, filter, share, observeOn, distinctUntilChanged } from 'rxjs/operators';
-import { IActionCapturer, IStatelessModel } from '../model/common';
-import { Action, SEDispatcher, AnyAction, ActionPayload } from './common';
-import { StatefulModel } from '../model/stateful';
+import { IActionCapturer, IStatelessModel } from '../model/common.js';
+import { Action, SEDispatcher, AnyAction, ActionPayload } from './common.js';
+import { StatefulModel } from '../model/stateful.js';
 
 
 /**

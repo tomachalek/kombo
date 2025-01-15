@@ -17,9 +17,9 @@
 import { of as rxOf, Subject, Subscription, BehaviorSubject, Observable, throwError, timer } from 'rxjs';
 import { reduce, concatMap, takeUntil, map } from 'rxjs/operators';
 import { produce, current } from 'immer';
-import { IStatelessModel, IModel, IActionHandlerModifier, ModelActionLoggingArgs, _payloadFilter, MultipleActions, UnionFromTuple, DecoratorFn } from './common';
-import { Action, IReducer, ISideEffectHandler, SEDispatcher, INewStateReducer, IStateChangeListener } from '../action/common';
-import { IActionQueue } from '../action';
+import { IStatelessModel, IModel, IActionHandlerModifier, ModelActionLoggingArgs, _payloadFilter, MultipleActions, UnionFromTuple } from './common.js';
+import { Action, IReducer, ISideEffectHandler, SEDispatcher, INewStateReducer, IStateChangeListener } from '../action/common.js';
+import { IActionQueue } from '../action/index.js';
 
 /**
  * Stateless model is state-less in a sense that it does not
