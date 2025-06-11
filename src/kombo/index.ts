@@ -35,7 +35,8 @@ export { ActionDispatcher } from './action/index.js';
 
 export {
         Bound,
-        BoundWithProps
+        BoundWithProps,
+        useModel
 } from './components/index.js';
 
 export type {
