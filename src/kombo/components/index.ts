@@ -18,6 +18,39 @@ import * as React from 'react';
 import { IModel } from '../model/common.js';
 
 /**
+ * useModel is a modern, hook-based replacement for Bound and BoundWithProps.
+ * Inside your component, just use
+ *
+ * const state = useModel(myModel);
+ *
+ * and your component has access to model's state. This also means that mixing
+ * props and state need no special function as props of the component are unaffected.
+ *
+ * @param model
+ * @returns
+ */
+export function useModel<T>(model:IModel<T>):T {
+    const [state, setState] = React.useState(model.getState());
+
+    React.useEffect(
+        () => {
+            const subscr = model.addListener(
+                (newState:T) => {
+                    setState(newState);
+                }
+            );
+
+            return () => {
+                subscr.unsubscribe();
+            }
+        },
+        [model]
+    );
+
+    return state;
+}
+
+/**
  * Bound is a component wrapper mapping a state handled by a IModel
  * to a wrapped component via props.
  *
