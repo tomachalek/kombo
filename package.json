@@ -1,6 +1,6 @@
 {
   "name": "kombo",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "type": "module",
   "main": "dist/kombo.cjs",
   "module": "dist-es6/kombo.js",
@@ -22,7 +22,8 @@
     }
   },
   "dependencies": {
-    "immer": "^10.1.1"
+    "immer": "^10.1.1",
+    "intl-messageformat": "^10.7.18"
   },
   "peerDependencies": {
     "@types/react": "^19.0.7",
