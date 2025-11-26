@@ -44,9 +44,6 @@ export default [
             esbuild({
                 tsconfig: './src/kombo/tsconfig.json'
             }),
-            alias({
-                'vendor/intl-messageformat': './../vendor/intl-messageformat'
-            }),
             terser(),
             resolve({
                 extensions: ['.ts', '.js']
@@ -70,9 +67,6 @@ export default [
 		plugins: [
             esbuild({
                 tsconfig: './src/kombo/tsconfig.json'
-            }),
-            alias({
-                'vendor/intl-messageformat': './../vendor/intl-messageformat'
             }),
             resolve({
                 extensions: ['.ts', '.js']

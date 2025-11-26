@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
+import { FormatXMLElementFn, PrimitiveType } from "intl-messageformat";
+import { ReactNode } from "react";
 
 export interface ITranslator {
 
     translate(key:string, args?:{[key:string]:string|number|boolean}):string;
+
+    translateRich(
+        msg:string,
+        values?:Record<string, PrimitiveType | ReactNode | FormatXMLElementFn<ReactNode>>
+    ): string | ReactNode | Array<string | ReactNode>
 
     formatDate(d:Date, timeFormat?:number):string;
 

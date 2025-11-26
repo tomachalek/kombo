@@ -19,8 +19,7 @@ export default {
     },
     resolve: {
         alias: {
-            'kombo': resolve(__dirname, 'dist-es6/kombo.js'),
-            'vendor/intl-messageformat': mkpath('../../../src/vendor/intl-messageformat')
+            'kombo': resolve(__dirname, 'dist-es6/kombo.js')
         },
         modules: [
             'node_modules',

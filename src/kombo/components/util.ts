@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
+import {IntlMessageFormat,  FormatXMLElementFn, PrimitiveType } from 'intl-messageformat';
 import { ITranslator } from '../l10n.js';
-import IntlMessageFormat from '../../vendor/intl-messageformat.js';
+import { ReactNode } from 'react';
 
 
 export type TranslationTable = {[key:string]:string};
@@ -107,7 +108,7 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
             const tmp = this.currTranslation[key];
             if (tmp) {
                 try {
-                    return args ? new IntlMessageFormat(tmp, this.uiLang).format(args) : tmp;
+                    return args ? new IntlMessageFormat(tmp, this.uiLang).format(args) + '' : tmp;
 
                 } catch (e) {
                     console.error('Failed to translate ', key, e);
@@ -115,6 +116,26 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
                 }
             }
             return key;
+        }
+        return '';
+    }
+
+    translateRich(
+        msg: string,
+        values?: Record<string, PrimitiveType | ReactNode | FormatXMLElementFn<ReactNode>>
+    ): string | ReactNode | Array<string | ReactNode> {
+        if (msg) {
+            const tmp = this.currTranslation[msg];
+            if (tmp) {
+                try {
+                    const format = new IntlMessageFormat(tmp, this.uiLang);
+                    return format.format(values);
+                } catch (e) {
+                    console.error('Failed to translate ', msg, e);
+                    return tmp;
+                }
+            }
+            return msg;
         }
         return '';
     }
