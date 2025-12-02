@@ -32,13 +32,13 @@ export interface ViewUtilsArgs {
     actionUrlCreator?:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
 
     /**
-     * @see ResourceTranslator
+     * @see RuntimeValueTranslator
      */
-    resourceTranslator?:ResourceTranslator;
+    runtimeValueTranslator?:RuntimeValueTranslator;
 }
 
 /**
- * ResourceTranslator represents a function which
+ * RuntimeValueTranslator represents a function which
  * translates special dynamic (but low cardinality)
  * values typically obtained from database which may
  * need translations for end users.
@@ -48,7 +48,7 @@ export interface ViewUtilsArgs {
  * contexts/datasets - where each needs its own translation)
  * @param value is the translated value
  */
-export interface ResourceTranslator {
+export interface RuntimeValueTranslator {
     (groupId: string, value: string): string;
 }
 
@@ -69,21 +69,21 @@ export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
 
     readonly createActionUrl:(path:string, args?:{[k:string]:string}|Array<[string, string]>)=>string;
 
-    readonly resourceTranslator:ResourceTranslator;
+    readonly translateRuntimeValue:RuntimeValueTranslator;
 
     constructor({
         uiLang,
         translations,
         staticUrlCreator,
         actionUrlCreator,
-        resourceTranslator
+        runtimeValueTranslator
     }:ViewUtilsArgs) {
         this.uiLang = uiLang.replace('_', '-');
         this.translations = translations || {[ViewUtils.DEFAULT_LANG]: {}};
         this.currTranslation = this.translations[this.ensureLangKey(this.uiLang)];
         this.createStaticUrl = staticUrlCreator ? staticUrlCreator : s => s;
         this.createActionUrl = actionUrlCreator ? actionUrlCreator : (s, a) => s; // TODO ?
-        this.resourceTranslator = resourceTranslator ? resourceTranslator : (groupId, v) => v;
+        this.translateRuntimeValue = runtimeValueTranslator ? runtimeValueTranslator : (groupId, v) => v;
     }
 
     private ensureLangKey(lang:string):string {
