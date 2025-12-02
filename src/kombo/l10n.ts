@@ -17,6 +17,23 @@
 import { FormatXMLElementFn, PrimitiveType } from "intl-messageformat";
 import { ReactNode } from "react";
 
+
+/**
+ * RuntimeValueTranslator represents a function which
+ * translates special dynamic (but low cardinality)
+ * values typically obtained from database which may
+ * need translations for end users.
+ *
+ * @param groupId can be used to specify a group
+ * of values (imagine e.g. a code 'MERCH' in two different
+ * contexts/datasets - where each needs its own translation)
+ * @param value is the translated value
+ */
+export interface RuntimeValueTranslator {
+    (groupId: string, value: string): string;
+}
+
+
 export interface ITranslator {
 
     translate(key:string, args?:{[key:string]:string|number|boolean}):string;
@@ -24,7 +41,12 @@ export interface ITranslator {
     translateRich(
         msg:string,
         values?:Record<string, PrimitiveType | ReactNode | FormatXMLElementFn<ReactNode>>
-    ): string | ReactNode | Array<string | ReactNode>
+    ): string | ReactNode | Array<string | ReactNode>;
+
+    /**
+     * translate a dynamic/runtime value using a custom function.
+     */
+    translateRuntimeValue:RuntimeValueTranslator;
 
     formatDate(d:Date, timeFormat?:number):string;
 

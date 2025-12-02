@@ -15,7 +15,7 @@
  */
 
 import {IntlMessageFormat,  FormatXMLElementFn, PrimitiveType } from 'intl-messageformat';
-import { ITranslator } from '../l10n.js';
+import { ITranslator, RuntimeValueTranslator } from '../l10n.js';
 import { ReactNode } from 'react';
 
 
@@ -37,20 +37,6 @@ export interface ViewUtilsArgs {
     runtimeValueTranslator?:RuntimeValueTranslator;
 }
 
-/**
- * RuntimeValueTranslator represents a function which
- * translates special dynamic (but low cardinality)
- * values typically obtained from database which may
- * need translations for end users.
- *
- * @param groupId can be used to specify a group
- * of values (imagine e.g. a code 'MERCH' in two different
- * contexts/datasets - where each needs its own translation)
- * @param value is the translated value
- */
-export interface RuntimeValueTranslator {
-    (groupId: string, value: string): string;
-}
 
 
 export class ViewUtils<T extends ComponentLib<T>> implements ITranslator {
